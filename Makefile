@@ -6,7 +6,10 @@ CFLAGS	= -Werror -Wextra -Wall -std=c++98 -pedantic -fsanitize=address
 
 SRCS_MAIN	= main.cpp
 
-SRCS		= ${SRCS_MAIN}
+SRCS_CONFIG	= Config.cpp
+
+SRCS		= ${SRCS_MAIN} \
+				$(addprefix config/, ${SRCS_CONFIG})
 
 OBJS	= ${SRCS:.cpp=.o}
 
@@ -14,13 +17,14 @@ SRCS_DIR = src
 
 OBJS_DIR = obj
 
-OBJS_DIRS	= ${OBJS_DIR}
+OBJS_DIRS	= ${OBJS_DIR} \
+				$(addprefix ${OBJS_DIR}/, config)
 
 SRCS_PATHS 	= $(addprefix $(SRCS_DIR)/, $(SRCS))
 
 OBJS_PATHS 	= $(addprefix $(OBJS_DIR)/, $(OBJS))
 
-INCLUDES = -I ./${LIBFT}inc
+INCLUDES = -I ./inc -I ./src/config
 
 RM		= rm -rf
 
