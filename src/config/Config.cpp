@@ -1,47 +1,60 @@
 #include "Config.hpp"
+#include <cctype>
 
 const std::string Config::DEFAULT_FILE_NAME = "webserv.conf";
 
+bool Config::nextToken(std::string &token)
+{
+    token.clear();
+
+    if (endOfProprty)
+    {
+        token += ';';
+        endOfProprty = false;
+        return true;
+    }
+    while (std::isspace(this->configFile.get()));
+    this->configFile.unget();
+    while(this->configFile.good())
+    {
+        char c = this->configFile.get();
+        if (std::isspace(c))
+            break;
+        if (c == '#')
+            while (this->configFile.get() != ' ');
+        if (c == ';')
+            break;
+        token += c;
+    }
+    if (token.empty())
+        return false;
+    return (true);
+}
+
 void Config::loadConfig()
 {
-    std::ifstream configFile(this->DEFAULT_FILE_NAME);
+    std::string token;
 
-    if (!configFile.is_open())
+    this->configFile.open(DEFAULT_FILE_NAME.c_str());
+
+    if (!this->configFile.is_open())
     {
         std::cerr << "Error: Could not open config file: " << DEFAULT_FILE_NAME << std::endl;
         exit(1);
     }
-    std::string line;
-    state currentState = GENERAL;
-    while (std::getline(configFile, line))
+
+    this->tokens = std::vector<std::string>();
+
+    while (this->nextToken(token))
+        this->tokens.push_back(token);
+
+    while (this->tokens.size())
     {
-        if (line.empty())
-            continue;
-        if (line[0] == '#')
-            continue;
-        if (line[0] == '}')
-        {
-            currentState = GENERAL;
-            continue;
-        }
-        if (line[0] == '{')
-        {
-            currentState = SERVER;
-            continue;
-        }
-        if (currentState == GENERAL)
-        {
-            std::cout << "GENERAL: " << line << std::endl;
-        }
-        else if (currentState == SERVER)
-        {
-            std::cout << "SERVER: " << line << std::endl;
-        }
-        else if (currentState == LOCATION)
-        {
-            std::cout << "LOCATION: " << line << std::endl;
-        }
+        std::cout << this->tokens.front() << std::endl;
+        this->tokens.erase(this->tokens.begin());
     }
+
+    this->configFile.close();
 }
 
 Config::Config()
