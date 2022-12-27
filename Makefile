@@ -6,7 +6,7 @@ CFLAGS	= -Werror -Wextra -Wall -std=c++98 -pedantic -fsanitize=address
 
 SRCS_MAIN	= main.cpp
 
-SRCS_CONFIG	= Config.cpp
+SRCS_CONFIG	= Config.cpp Server.cpp
 
 SRCS		= ${SRCS_MAIN} \
 				$(addprefix config/, ${SRCS_CONFIG})
@@ -46,8 +46,9 @@ clean:
 fclean:		clean
 	@${RM} ${NAME}
 
-bonus: all
+bear : fclean
+	@bear -- make
 
 re:		fclean all
 
-.PHONY:	clean re fclean all
+.PHONY:	clean re fclean all bear
