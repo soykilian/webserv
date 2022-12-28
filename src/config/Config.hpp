@@ -47,6 +47,8 @@ class Config
         UNKNOWN
     } ParseState;
 
+    bool processLocation(std::string key);
+    bool callProcessProperty();
     bool parseServer();
 
     // Variable to hold the current server been parsed

@@ -3,10 +3,44 @@
 
 const std::string Config::DEFAULT_FILE_NAME = "webserv.conf";
 
-bool Config::parseServer()
+/**
+ * The location propertie is an object itself, so we need to parse it
+ * the same way we parse the server object
+ */
+bool Config::processLocation(std::string key)
 {
+    std::cout << "processLocation" << key << std::endl;
+    return (true);
+}
+
+bool Config::callProcessProperty()
+{
+    // Store the current token containing the property name
+    // and the next tokens containing the property value
+    // until the ; is found
     std::string value;
     std::string key;
+
+    key = this->token;
+    if (key == "location")
+        return (this->processLocation(key));
+    while (this->nextToken() && this->token != ";")
+        value += this->token;
+    if (this->token != ";")
+    {
+        std::cout << "Error: expected ;" << std::endl;
+        return false;
+    }
+    if ((this->server->*server->propertyMap[key])(value))
+    {
+        std::cout << "Error: invalid value for " << key << std::endl;
+        return false;
+    }
+    return true;
+}
+
+bool Config::parseServer()
+{
 
     if (nextToken() && this->token != "{")
     {
@@ -17,27 +51,17 @@ bool Config::parseServer()
     {
         if (this->server->propertyMap.find(this->token) !=
             this->server->propertyMap.end())
-        {
-            value.clear();
-            key = this->token;
-            while (this->nextToken() && this->token != ";")
-                value += this->token;
-            if (this->token != ";")
-            {
-                std::cout << "Error: expected ;" << std::endl;
-                return false;
-            }
-            if ((this->server->*server->propertyMap[key])(value))
-            {
-                std::cout << "Error: invalid value for " << key << std::endl;
-                return false;
-            }
-        }
+            return this->callProcessProperty();
         else
         {
             std::cout << "Error: unknown property " << this->token << std::endl;
             return false;
         }
+    }
+    if (this->token != "}")
+    {
+        std::cout << "Error: expected }" << std::endl;
+        return false;
     }
     return true;
 }
@@ -79,7 +103,6 @@ bool Config::nextToken()
     }
     if (this->token.empty())
         return false;
-    std::cout << this->token << std::endl;
     return (true);
 }
 
@@ -122,26 +145,6 @@ void Config::loadConfig()
             this->parseServer();
         }
     }
-
-    // while (this->nextToken(token))
-    //     this->tokens.push_back(token);
-
-    // for (size_t i = 0; i < this->tokens.size(); i++)
-    // {
-    //     if (state == UNKNOWN && this->tokens[0] != "server")
-    //     {
-    //         std::cerr << "Error: Config file must start with a server block"
-    //                   << std::endl;
-    //         exit(1);
-    //     }
-    // }
-
-    // while (this->tokens.size())
-    // {
-    //     std::cout << this->tokens.front() << std::endl;
-    //     this->tokens.erase(this->tokens.begin());
-    // }
-
     this->configFile.close();
 }
 
