@@ -7,13 +7,14 @@ const std::string Config::DEFAULT_FILE_NAME = "webserv.conf";
  * The location propertie is an object itself, so we need to parse it
  * the same way we parse the server object
  */
-bool Config::processLocation(std::string key)
+bool Config::processLocation()
 {
-    std::cout << "processLocation" << key << std::endl;
+    if (this->nextToken() && this->token != "{")
+        return false;
     return (true);
 }
 
-bool Config::callProcessProperty()
+bool Config::callProcessServerProperty()
 {
     // Store the current token containing the property name
     // and the next tokens containing the property value
@@ -23,7 +24,7 @@ bool Config::callProcessProperty()
 
     key = this->token;
     if (key == "location")
-        return (this->processLocation(key));
+        return (this->processLocation());
     while (this->nextToken() && this->token != ";")
         value += this->token;
     if (this->token != ";")
@@ -31,7 +32,7 @@ bool Config::callProcessProperty()
         std::cout << "Error: expected ;" << std::endl;
         return false;
     }
-    if ((this->server->*server->propertyMap[key])(value))
+    if ((this->currentServer->*currentServer->propertyMap[key])(value))
     {
         std::cout << "Error: invalid value for " << key << std::endl;
         return false;
@@ -49,9 +50,9 @@ bool Config::parseServer()
     }
     while (this->nextToken() && this->token != "}")
     {
-        if (this->server->propertyMap.find(this->token) !=
-            this->server->propertyMap.end())
-            return this->callProcessProperty();
+        if (this->currentServer->propertyMap.find(this->token) !=
+            this->currentServer->propertyMap.end())
+            return this->callProcessServerProperty();
         else
         {
             std::cout << "Error: unknown property " << this->token << std::endl;
@@ -106,9 +107,14 @@ bool Config::nextToken()
     return (true);
 }
 
+/*
+ * This functions is the entry point for the parsing
+ * of the config file.  It will call the nextToken
+ * to get each token and then call the parseServer
+ * function to parse the server object.
+ */
 void Config::loadConfig()
 {
-    this->currentServer = this->server;
     ParseState state = UNKNOWN;
 
     this->configFile.open(DEFAULT_FILE_NAME.c_str());
@@ -132,16 +138,8 @@ void Config::loadConfig()
         {
             state = SERVER;
             // Set the current server to the first server in the list
-            if (currentServer == NULL)
-            {
-                this->server = new Server();
-                this->currentServer = this->server;
-            }
-            else
-            {
-                this->currentServer->next = new Server();
-                this->currentServer = this->currentServer->next;
-            }
+            this->servers.push_back(new Server());
+            this->currentServer = this->servers.back();
             this->parseServer();
         }
     }
@@ -151,7 +149,6 @@ void Config::loadConfig()
 Config::Config()
 {
     this->endOfProprty = false;
-    this->server = NULL;
     loadConfig();
 }
 

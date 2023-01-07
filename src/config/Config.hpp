@@ -38,7 +38,7 @@ class Config
     bool endOfProprty;
 
     // Linked list of servers
-    Server *server;
+    std::vector<Server *> servers;
 
     typedef enum
     {
@@ -47,8 +47,8 @@ class Config
         UNKNOWN
     } ParseState;
 
-    bool processLocation(std::string key);
-    bool callProcessProperty();
+    bool processLocation();
+    bool callProcessServerProperty();
     bool parseServer();
 
     // Variable to hold the current server been parsed
