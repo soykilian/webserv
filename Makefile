@@ -2,7 +2,9 @@ NAME	= webserv
 
 CC		= c++
 
-CFLAGS	= -Werror -Wextra -Wall -std=c++98 -pedantic -fsanitize=address
+CONFIG_FILE = webserv.conf
+
+CFLAGS	= -Werror -Wextra -Wall -std=c++98 -pedantic -fsanitize=address -D CONFIG_FILE=\"$(CONFIG_FILE)\"
 
 SRCS_MAIN	= main.cpp
 

@@ -1,7 +1,47 @@
 #include "Config.hpp"
 #include <cctype>
 
-const std::string Config::DEFAULT_FILE_NAME = "webserv.conf";
+const std::string Config::DEFAULT_FILE_NAME = CONFIG_FILE;
+
+/*
+ * This function recives a reference to a string
+ * and returns true if there is a next token in the
+ * config file.  If there is a next token, the string
+ * is set to the next token.
+ */
+bool Config::nextToken()
+{
+    char c;
+    this->token.clear();
+
+    if (endOfProprty)
+    {
+        this->token += ';';
+        this->endOfProprty = false;
+        return true;
+    }
+    while (std::isspace(this->configFile.get()))
+        ;
+    this->configFile.unget();
+    while (this->configFile.good())
+    {
+        c = this->configFile.get();
+        if (std::isspace(c))
+            break;
+        if (c == '#')
+            while (this->configFile.get() != '\n')
+                ;
+        if (c == ';')
+        {
+            this->endOfProprty = true;
+            break;
+        }
+        this->token += c;
+    }
+    if (this->token.empty())
+        return false;
+    return (true);
+}
 
 /**
  * The location propertie is an object itself, so we need to parse it
@@ -68,46 +108,6 @@ bool Config::parseServer()
 }
 
 /*
- * This function recives a reference to a string
- * and returns true if there is a next token in the
- * config file.  If there is a next token, the string
- * is set to the next token.
- */
-bool Config::nextToken()
-{
-    char c;
-    this->token.clear();
-
-    if (endOfProprty)
-    {
-        this->token += ';';
-        this->endOfProprty = false;
-        return true;
-    }
-    while (std::isspace(this->configFile.get()))
-        ;
-    this->configFile.unget();
-    while (this->configFile.good())
-    {
-        c = this->configFile.get();
-        if (std::isspace(c))
-            break;
-        if (c == '#')
-            while (this->configFile.get() != '\n')
-                ;
-        if (c == ';')
-        {
-            this->endOfProprty = true;
-            break;
-        }
-        this->token += c;
-    }
-    if (this->token.empty())
-        return false;
-    return (true);
-}
-
-/*
  * This functions is the entry point for the parsing
  * of the config file.  It will call the nextToken
  * to get each token and then call the parseServer
@@ -117,15 +117,6 @@ void Config::loadConfig()
 {
     ParseState state = UNKNOWN;
 
-    this->configFile.open(DEFAULT_FILE_NAME.c_str());
-    if (!this->configFile.is_open())
-    {
-        std::cerr << "Error: Could not open config file: " << DEFAULT_FILE_NAME
-                  << std::endl;
-        exit(1);
-    }
-
-    this->tokens = std::vector<std::string>();
     while (this->nextToken())
     {
         if (state == UNKNOWN && this->token != "server")
@@ -148,7 +139,15 @@ void Config::loadConfig()
 
 Config::Config()
 {
+    this->configFile.open(DEFAULT_FILE_NAME.c_str());
+    if (!this->configFile.is_open())
+    {
+        std::cerr << "Error: Could not open config file: " << DEFAULT_FILE_NAME
+                  << std::endl;
+        exit(1);
+    }
     this->endOfProprty = false;
+    this->tokens = std::vector<std::string>();
     loadConfig();
 }
 
