@@ -72,7 +72,7 @@ bool Config::callProcessServerProperty()
         std::cout << "Error: expected ;" << std::endl;
         return false;
     }
-    if ((this->currentServer->*currentServer->propertyMap[key])(value))
+    if (!this->currentServer->fields[key]->processValue(value))
     {
         std::cout << "Error: invalid value for " << key << std::endl;
         return false;
@@ -90,8 +90,8 @@ bool Config::parseServer()
     }
     while (this->nextToken() && this->token != "}")
     {
-        if (this->currentServer->propertyMap.find(this->token) !=
-            this->currentServer->propertyMap.end())
+        if (this->currentServer->fields.find(this->token) !=
+            this->currentServer->fields.end())
             return this->callProcessServerProperty();
         else
         {

@@ -1,18 +1,27 @@
 #ifndef LISTENFIELD_HPP
 #define LISTENFIELD_HPP
 
-#include "Base.hpp"
+#include "BaseField.hpp"
+#include <sstream>
 #include <string>
 
-class ListenField : public Base<int>
+class ListenField : public BaseField<int>
 {
   public:
-    ListenField() : Base<int>() {}
-    virtual ~ListenField();
+    ListenField() : BaseField<int>() {}
+    ListenField(int val) : BaseField<int>(val) {}
+    virtual ~ListenField() {}
     ListenField(ListenField const &other);
     ListenField &operator=(ListenField const &other);
 
-    void processValue(std::string value) { this->setValue(std::stoi(value)); }
+    int processValue(std::string value)
+    {
+        std::cout << "Processing value: " << value << std::endl;
+        int i;
+        std::istringstream(value) >> i;
+        this->setValue(i);
+        return 1;
+    }
 };
 
 #endif // LISTENFIELD_HPP
