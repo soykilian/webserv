@@ -1,6 +1,10 @@
 #include "Server.hpp"
 
-Server::Server() { this->fields["listen"] = new ListenField(); }
+Server::Server()
+{
+    this->fields["listen"] = new ListenField();
+    this->fields["location"] = new Location();
+}
 
 Server::~Server() {}
 

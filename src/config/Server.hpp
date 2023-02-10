@@ -10,7 +10,6 @@
 
 class Server
 {
-  private:
   public:
     Server();
     ~Server();
@@ -18,6 +17,7 @@ class Server
     Server &operator=(const Server &);
 
     std::map<std::string, Base *> fields;
+    std::vector<Location *> locations;
 };
 
 #endif // !SERVER_HPP

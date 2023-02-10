@@ -43,14 +43,72 @@ bool Config::nextToken()
     return (true);
 }
 
+bool Config::callProcessLocationProperty()
+{
+    // Store the current token containing the property name
+    // and the next tokens containing the property value
+    // until the ; is found
+    std::string value;
+    std::string key;
+
+    key = this->token;
+    while (this->nextToken() && this->token != ";")
+        value += this->token;
+    if (this->token != ";")
+    {
+        std::cout << "Error: expected ;" << std::endl;
+        return false;
+    }
+    if (!this->currentLocation->fields[key]->processValue(value))
+    {
+        std::cout << "Error: invalid value for " << key << std::endl;
+        return false;
+    }
+    return true;
+}
+
 /**
  * The location propertie is an object itself, so we need to parse it
  * the same way we parse the server object
+ * The location has the following format:
+ *
+ * location /path/to/location {
+ *     property1 value1;
+ *     ...
+ * }
+ *
  */
 bool Config::processLocation()
 {
-    if (this->nextToken() && this->token != "{")
+    this->currentLocation = new Location();
+    if (!this->nextToken() || !this->currentLocation->processValue(this->token))
+    {
+        std::cout << "Invalid location route" << std::endl;
         return false;
+    }
+    if (!this->nextToken() || this->token != "{")
+    {
+        std::cout << "Invalid location route" << std::endl;
+        return false;
+    }
+    while (this->nextToken() && this->token != "}")
+    {
+        if (this->currentLocation->fields.find(this->token) ==
+            this->currentLocation->fields.end())
+        {
+            std::cout << "Error: unknown property " << this->token << std::endl;
+            return false;
+        }
+        if (!this->callProcessLocationProperty())
+            return false;
+    }
+    if (this->token != "}")
+    {
+        std::cout << "Error: expected }" << std::endl;
+        return false;
+    }
+    std::cout << *this->currentLocation << std::endl;
+    this->currentServer->locations.push_back(this->currentLocation);
     return (true);
 }
 
@@ -73,10 +131,7 @@ bool Config::callProcessServerProperty()
         return false;
     }
     if (!this->currentServer->fields[key]->processValue(value))
-    {
-        std::cout << "Error: invalid value for " << key << std::endl;
         return false;
-    }
     return true;
 }
 
@@ -90,14 +145,14 @@ bool Config::parseServer()
     }
     while (this->nextToken() && this->token != "}")
     {
-        if (this->currentServer->fields.find(this->token) !=
+        if (this->currentServer->fields.find(this->token) ==
             this->currentServer->fields.end())
-            return this->callProcessServerProperty();
-        else
         {
             std::cout << "Error: unknown property " << this->token << std::endl;
             return false;
         }
+        if (!this->callProcessServerProperty())
+            return false;
     }
     if (this->token != "}")
     {
@@ -131,7 +186,11 @@ void Config::loadConfig()
             // Set the current server to the first server in the list
             this->servers.push_back(new Server());
             this->currentServer = this->servers.back();
-            this->parseServer();
+            if (!this->parseServer())
+            {
+                std::cerr << "Error: Invalid server block" << std::endl;
+                exit(1);
+            }
         }
     }
     this->configFile.close();

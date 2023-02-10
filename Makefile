@@ -10,8 +10,14 @@ SRCS_MAIN	= main.cpp
 
 SRCS_CONFIG	= Config.cpp Server.cpp
 
+SRCS_UTILS	= Utils.cpp
+
+SRCS_FIELDS	= Location.cpp
+
 SRCS		= ${SRCS_MAIN} \
-				$(addprefix config/, ${SRCS_CONFIG})
+				$(addprefix config/, ${SRCS_CONFIG}) \
+				$(addprefix utils/, ${SRCS_UTILS}) \
+				$(addprefix config/fields/, ${SRCS_FIELDS})
 
 OBJS	= ${SRCS:.cpp=.o}
 
@@ -20,13 +26,15 @@ SRCS_DIR = src
 OBJS_DIR = obj
 
 OBJS_DIRS	= ${OBJS_DIR} \
-				$(addprefix ${OBJS_DIR}/, config)
+				$(addprefix ${OBJS_DIR}/, config) \
+				$(addprefix ${OBJS_DIR}/, utils) \
+				$(addprefix ${OBJS_DIR}/, config/fields)
 
 SRCS_PATHS 	= $(addprefix $(SRCS_DIR)/, $(SRCS))
 
 OBJS_PATHS 	= $(addprefix $(OBJS_DIR)/, $(OBJS))
 
-INCLUDES = -I ./inc -I ./src/config -I ./src/config/fields/
+INCLUDES = -I ./inc -I ./src/config -I ./src/config/fields/ -I ./src/utils
 
 RM		= rm -rf
 

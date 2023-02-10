@@ -2,6 +2,7 @@
 #define CONFIG_HPP
 
 #include "Server.hpp"
+#include <Fields.hpp>
 #include <fstream>
 #include <iostream>
 #include <stdlib.h>
@@ -47,12 +48,16 @@ class Config
         UNKNOWN
     } ParseState;
 
+    bool callProcessLocationProperty();
     bool processLocation();
     bool callProcessServerProperty();
     bool parseServer();
 
     // Variable to hold the current server been parsed
     Server *currentServer;
+
+    // Variable to hold the current server been parsed
+    Location *currentLocation;
 
     // Variable to hold the current token been parsed
     std::string token;
