@@ -1,7 +1,6 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
-#include <BaseField.hpp>
 #include <Fields.hpp>
 #include <iostream>
 #include <map>
@@ -18,6 +17,13 @@ class Server
 
     std::map<std::string, Base *> fields;
     std::vector<Location *> locations;
+
+    void validate();
+
+    int getPort() const;
+    std::string getHost() const;
 };
+
+std::ostream &operator<<(std::ostream &out, Server const &server);
 
 #endif // !SERVER_HPP

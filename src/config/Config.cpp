@@ -107,6 +107,7 @@ bool Config::processLocation()
         std::cout << "Error: expected }" << std::endl;
         return false;
     }
+    // ------------------- PRINT LOCATION -------------------
     std::cout << *this->currentLocation << std::endl;
     this->currentServer->locations.push_back(this->currentLocation);
     return (true);
@@ -191,6 +192,8 @@ void Config::loadConfig()
                 std::cerr << "Error: Invalid server block" << std::endl;
                 exit(1);
             }
+            // ------------------- PRINT SERVER -------------------
+            std::cout << *this->currentServer << std::endl;
         }
     }
     this->configFile.close();

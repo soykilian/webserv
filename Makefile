@@ -34,7 +34,7 @@ SRCS_PATHS 	= $(addprefix $(SRCS_DIR)/, $(SRCS))
 
 OBJS_PATHS 	= $(addprefix $(OBJS_DIR)/, $(OBJS))
 
-INCLUDES = -I ./inc -I ./src/config -I ./src/config/fields/ -I ./src/utils
+INCLUDES = -I ./inc -I ./src/config -I ./src/config/fields/inc -I ./src/utils
 
 RM		= rm -rf
 

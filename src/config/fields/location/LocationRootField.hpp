@@ -1,7 +1,7 @@
 #ifndef LOCATIONROOTFIELD_HPP
 #define LOCATIONROOTFIELD_HPP
 
-#include "BaseField.hpp"
+#include "../BaseField.hpp"
 #include <iostream>
 #include <string>
 #include <unistd.h>

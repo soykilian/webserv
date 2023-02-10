@@ -1,7 +1,7 @@
 #ifndef LOCATION_HPP
 #define LOCATION_HPP
 
-#include "BaseField.hpp"
+#include "../BaseField.hpp"
 #include <iostream>
 #include <map>
 #include <string>
