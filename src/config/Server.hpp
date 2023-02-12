@@ -22,6 +22,7 @@ class Server
 
     int getPort() const;
     std::string getHost() const;
+    int server_listen();
 };
 
 std::ostream &operator<<(std::ostream &out, Server const &server);

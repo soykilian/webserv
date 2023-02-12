@@ -8,6 +8,7 @@
 int main(void)
 {
 	int fd, new_socket;
+	int yes = 1;
 	//char *hello = "HOLA CLIENTE!";
 	char *hello = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!";
 	socklen_t	addrlen;
@@ -20,7 +21,9 @@ int main(void)
 	memset((char *)&address, 0, sizeof(address));
 	address.sin_family = AF_INET;
 	address.sin_addr.s_addr = htonl(INADDR_ANY);
+	std::cout << "Host: "  << INADDR_ANY << std::endl;
 	address.sin_port = htons(PORT);
+	setsockopt(fd, SOL_SOCKET, SO_REUSEADDR,&yes , sizeof(int));
 	if (bind(fd, (struct sockaddr *) &address, sizeof(address)) < 0)
 	{
 		perror("In bind");
@@ -48,5 +51,4 @@ int main(void)
         printf("------------------Hello message sent-------------------\n");
 		close(new_socket);
 	}
-
 }
