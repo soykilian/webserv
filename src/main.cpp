@@ -69,15 +69,6 @@ int main(int argc, char **argv)
                         exit(EXIT_FAILURE);
                     }
                     add_to_pfds(&pfds, new_socket, &fd_count, &fd_size);
-                    /*
-                    char buffer[30000] = {0};
-                    read(new_socket, buffer, 30000);
-                    printf("%s\n", buffer);
-                    write(new_socket, hello.c_str(), strlen(hello.c_str()));
-                    printf("------------------Hello message ""sent-------------------\n");
-                    */
-                    close(new_socket);
-                    // If listener is ready to read, handle new connection
                 }
                 else
                 {
@@ -93,7 +84,6 @@ int main(int argc, char **argv)
                 printf("------------------Hello message sent-------------------\n");
                 close(pfds[i].fd); // Bye!
                 del_from_pfds(pfds, i, &fd_count);
-
             }
         }
     }
