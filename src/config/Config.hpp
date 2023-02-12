@@ -39,7 +39,8 @@ class Config
     bool endOfProprty;
 
     // Linked list of servers
-    std::vector<Server *> servers;
+    public:
+      std::vector<Server *> servers;
 
     typedef enum
     {
