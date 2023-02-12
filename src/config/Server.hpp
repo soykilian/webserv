@@ -23,6 +23,7 @@ class Server
     int getPort() const;
     std::string getHost() const;
     int server_listen();
+    void server_polling();
 };
 
 std::ostream &operator<<(std::ostream &out, Server const &server);
