@@ -1,9 +1,14 @@
 #include "Server.hpp"
+#include "fields/ClientBodySizeField.hpp"
 
 Server::Server()
 {
     this->fields["listen"] = new ListenField();
     this->fields["location"] = new Location();
+    this->fields["server_name"] = new ServerNameField();
+    this->fields["root"] = new RootField();
+    this->fields["error_page"] = new ErrorPageField();
+    this->fields["client_body_size"] = new ClientBodySizeField();
 }
 
 Server::~Server() {}

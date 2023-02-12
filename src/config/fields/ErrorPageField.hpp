@@ -2,6 +2,7 @@
 #define ERRORPAGEFIELD_HPP
 
 #include "BaseField.hpp"
+#include <unistd.h>
 
 class ErrorPageField : public BaseField<std::string>
 {
@@ -14,8 +15,14 @@ class ErrorPageField : public BaseField<std::string>
 
     int processValue(std::string value)
     {
+        // check if the path is a valid path
+        if (access(value.c_str(), F_OK) == -1)
+        {
+            std::cout << "Path does not exist" << std::endl;
+            return 0;
+        }
         this->setValue(value);
-        return 0;
+        return 1;
     }
 };
 

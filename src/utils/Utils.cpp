@@ -1,5 +1,7 @@
 #include "Utils.hpp"
+#include <iostream>
 #include <string>
+#include <unistd.h>
 
 bool ft::is_number(const std::string &s)
 {
