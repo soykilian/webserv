@@ -12,10 +12,11 @@
 void add_to_pfds(struct pollfd *pfds[], int newfd, int *fd_count, int *fd_size)
 {
     // If we don't have room, add more space in the pfds array
-    if (*fd_count == *fd_size) {
+    if (*fd_count == *fd_size)
+    {
         *fd_size *= 2; // Double it
 
-        *pfds =(pollfd*) realloc(*pfds, sizeof(**pfds) * (*fd_size));
+        *pfds = (pollfd *)realloc(*pfds, sizeof(**pfds) * (*fd_size));
     }
 
     (*pfds)[*fd_count].fd = newfd;
@@ -26,7 +27,7 @@ void add_to_pfds(struct pollfd *pfds[], int newfd, int *fd_count, int *fd_size)
 
 void del_from_pfds(struct pollfd pfds[], int i, int *fd_count)
 {
-    pfds[i] = pfds[*fd_count-1];
+    pfds[i] = pfds[*fd_count - 1];
     (*fd_count)--;
 }
 
@@ -34,11 +35,13 @@ int main(int argc, char **argv)
 {
     (void)argc;
     (void)argv;
+    // Read the config file
     Config &globalConfig = Config::instance();
+
     std::string hello = "HTTP/1.1 200 OK\nContent-Type: "
                         "text/plain\nContent-Length: 12\n\nHello world!";
     int fd = globalConfig.servers[0]->server_listen();
-    int fd_count;
+    int fd_count = 1;
     int fd_size = 5;
     int new_socket;
     struct sockaddr_storage address;
@@ -46,7 +49,6 @@ int main(int argc, char **argv)
     struct pollfd *pfds = (pollfd *)malloc(sizeof *pfds * fd_size);
     pfds[0].fd = fd;
     pfds[0].events = POLLIN;
-    fd_count = 1;
     while (1)
     {
         int poll_count = poll(pfds, fd_count, -1);
@@ -75,13 +77,14 @@ int main(int argc, char **argv)
                     char buffer[30000] = {0};
                     read(pfds[i].fd, buffer, 30000);
                     printf("%s\n", buffer);
-                    pfds[i].events=POLLOUT;
+                    pfds[i].events = POLLOUT;
                 }
             }
             else if (pfds[i].revents & POLLOUT)
             {
                 write(pfds[i].fd, hello.c_str(), strlen(hello.c_str()));
-                printf("------------------Hello message sent-------------------\n");
+                printf("------------------Hello message "
+                       "sent-------------------\n");
                 close(pfds[i].fd); // Bye!
                 del_from_pfds(pfds, i, &fd_count);
             }

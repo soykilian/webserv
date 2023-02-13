@@ -1,8 +1,8 @@
 #ifndef CONFIG_HPP
 #define CONFIG_HPP
 
-#include "Server.hpp"
 #include <Fields.hpp>
+#include <Server.hpp>
 #include <fstream>
 #include <iostream>
 #include <stdlib.h>
@@ -39,8 +39,8 @@ class Config
     bool endOfProprty;
 
     // Linked list of servers
-    public:
-      std::vector<Server *> servers;
+  public:
+    std::vector<Server *> servers;
 
     typedef enum
     {
