@@ -1,3 +1,4 @@
+#include "server/Request.hpp"
 #include <Config.hpp>
 #include <arpa/inet.h>
 #include <iostream>
@@ -33,9 +34,14 @@ void del_from_pfds(struct pollfd pfds[], int i, int *fd_count)
 
 int main(int argc, char **argv)
 {
-    (void)argc;
-    (void)argv;
-    // Read the config file
+    // Check if file name is provided
+    // If it is use it if not use default defined in Makefile
+    if (argc == 2)
+    {
+        std::cout << "Using config file: " << argv[1] << std::endl;
+        std::string config_file = argv[1];
+        Config::setFileName(config_file);
+    }
     Config &globalConfig = Config::instance();
 
     std::string hello = "HTTP/1.1 200 OK\nContent-Type: "
@@ -43,7 +49,7 @@ int main(int argc, char **argv)
     int fd = globalConfig.servers[0]->server_listen();
     int fd_count = 1;
     int fd_size = 5;
-    int new_socket;
+    int new_socket, rc;
     struct sockaddr_storage address;
     socklen_t addrlen;
     struct pollfd *pfds = (pollfd *)malloc(sizeof *pfds * fd_size);
@@ -74,20 +80,33 @@ int main(int argc, char **argv)
                 }
                 else
                 {
+                    printf("Reading from socket %d \n", pfds[i].fd);
                     char buffer[30000] = {0};
-                    read(pfds[i].fd, buffer, 30000);
-                    printf("%s\n", buffer);
-                    pfds[i].events = POLLOUT;
+                    rc = recv(pfds[i].fd, buffer, 30000, 0);
+                    printf("Read %d bytes:\n", rc);
+
+                    if (rc <= 0)
+                    {
+                        close(pfds[i].fd);
+                        del_from_pfds(pfds, i, &fd_count);
+                    }
+                    else
+                    {
+                        Request request(buffer);
+                        send(pfds[i].fd, hello.c_str(), hello.length(), 0);
+                        close(pfds[i].fd);
+                        del_from_pfds(pfds, i, &fd_count);
+                    }
                 }
             }
-            else if (pfds[i].revents & POLLOUT)
-            {
-                write(pfds[i].fd, hello.c_str(), strlen(hello.c_str()));
-                printf("------------------Hello message "
-                       "sent-------------------\n");
-                close(pfds[i].fd); // Bye!
-                del_from_pfds(pfds, i, &fd_count);
-            }
+            // else if (pfds[i].revents & POLLOUT)
+            // {
+            //     write(pfds[i].fd, hello.c_str(), strlen(hello.c_str()));
+            //     printf("------------------Hello message    "
+            //            "sent-------------------\n");
+            //     close(pfds[i].fd); // Bye!
+            //     del_from_pfds(pfds, i, &fd_count);
+            // }
         }
     }
     return 0;

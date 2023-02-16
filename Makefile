@@ -10,7 +10,7 @@ SRCS_MAIN	= main.cpp
 
 SRCS_CONFIG	= Config.cpp
 
-SRCS_SERVER	= Server.cpp
+SRCS_SERVER	= Server.cpp Request.cpp Response.cpp
 
 SRCS_UTILS	= Utils.cpp
 

@@ -27,7 +27,13 @@ template <typename T> class BaseField : public Base
         return *this;
     }
     T getValue() const { return this->m_data; }
-    void setValue(T value) { this->m_data = value; }
+    void setValue(T value)
+    {
+        this->m_data = value;
+        this->m_isSet = true;
+    }
+
+    bool isSet() const { return this->m_isSet; }
 
     virtual int processValue(std::string value)
     {
@@ -37,6 +43,7 @@ template <typename T> class BaseField : public Base
 
   private:
     T m_data;
+    bool m_isSet;
 };
 
 #endif // BASE_HPP

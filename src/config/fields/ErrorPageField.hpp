@@ -21,6 +21,7 @@ class ErrorPageField : public BaseField<std::string>
             std::cout << "Path does not exist" << std::endl;
             return 0;
         }
+        std::cout << "Path exists" << std::endl;
         this->setValue(value);
         return 1;
     }

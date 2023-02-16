@@ -17,6 +17,7 @@ class Config
 {
   private:
     static const std::string DEFAULT_FILE_NAME;
+    static std::string USER_SPECIFIED_FILE_NAME;
 
     std::ifstream configFile;
 
@@ -24,6 +25,7 @@ class Config
 
     // No need for the constructor to be public
     Config();
+    Config(std::string fileName);
     Config(const Config &);            // Don't implement
     Config &operator=(const Config &); // Don't implement
 
@@ -66,6 +68,7 @@ class Config
   public:
     // This is the only way to get an instance of the class
     static Config &instance();
+    static void setFileName(std::string &fileName);
 };
 
 #endif // DEBUG

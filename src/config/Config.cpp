@@ -2,6 +2,7 @@
 #include <cctype>
 
 const std::string Config::DEFAULT_FILE_NAME = CONFIG_FILE;
+std::string Config::USER_SPECIFIED_FILE_NAME = "";
 
 /*
  * This function recives a reference to a string
@@ -187,7 +188,7 @@ void Config::loadConfig()
             // Set the current server to the first server in the list
             this->servers.push_back(new Server());
             this->currentServer = this->servers.back();
-            if (!this->parseServer())
+            if (!this->parseServer() || !this->currentServer->validate())
             {
                 std::cerr << "Error: Invalid server block" << std::endl;
                 exit(1);
@@ -196,25 +197,37 @@ void Config::loadConfig()
             std::cout << *this->currentServer << std::endl;
         }
     }
-    this->configFile.close();
 }
 
 Config::Config()
 {
-    this->configFile.open(DEFAULT_FILE_NAME.c_str());
+    // Open the config file
+    // USER_SPECIFIED_FILE_NAME is priorized
+    // DEFAULT_CONFIG_FILE_NAME is used if the user didn't specify a config file
+    this->configFile.open(!USER_SPECIFIED_FILE_NAME.empty()
+                              ? USER_SPECIFIED_FILE_NAME.c_str()
+                              : DEFAULT_FILE_NAME.c_str());
     if (!this->configFile.is_open())
     {
-        std::cerr << "Error: Could not open config file: " << DEFAULT_FILE_NAME
+        std::cerr << "Error: Could not open config file: "
+                  << (USER_SPECIFIED_FILE_NAME.empty()
+                          ? DEFAULT_FILE_NAME
+                          : USER_SPECIFIED_FILE_NAME)
                   << std::endl;
         exit(1);
     }
     this->endOfProprty = false;
     this->tokens = std::vector<std::string>();
     loadConfig();
+    this->configFile.close();
 }
 
 Config &Config::instance()
 {
     static Config config;
     return config;
+}
+void Config::setFileName(std::string &fileName)
+{
+    USER_SPECIFIED_FILE_NAME = fileName;
 }

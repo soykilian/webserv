@@ -56,9 +56,10 @@ class ListenField : public BaseField<std::string>
             std::cout << "Invalid value" << std::endl;
             return 0;
         }
-        if (this->m_port > 0 && this->m_port < 65536)
-            return 1;
-        return 0;
+        if (this->m_port <= 0 || this->m_port >= 65536)
+            return 0;
+        this->setValue(value);
+        return 1;
     }
 };
 

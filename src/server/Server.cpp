@@ -1,5 +1,7 @@
 #include "Server.hpp"
 #include "fields/ClientBodySizeField.hpp"
+#include "fields/ErrorPageField.hpp"
+#include "fields/ListenField.hpp"
 #include <arpa/inet.h>
 #include <cstdio>
 #include <netinet/ip.h>
@@ -20,12 +22,26 @@ Server::Server(const Server &) {}
 
 Server &Server::operator=(const Server &) { return (*this); }
 
-void Server::validate()
+void Server::setDefaultErrPage()
 {
-    for (std::map<std::string, Base *>::iterator it = this->fields.begin();
-         it != this->fields.end(); it++)
+    ErrorPageField *defErrPage =
+        dynamic_cast<ErrorPageField *>(this->fields["error_page"]);
+
+    if (!defErrPage->isSet())
+        defErrPage->setValue("./error_page/error.html");
+}
+
+bool Server::validate()
+{
+    if (!dynamic_cast<ListenField *>(this->fields["listen"])->isSet())
     {
+        std::cout << "Listen field is not set." << std::endl;
+        return false;
     }
+    if (!dynamic_cast<ErrorPageField *>(this->fields["error_page"])->isSet())
+        this->setDefaultErrPage();
+
+    return true;
 }
 
 int Server::getPort() const
@@ -38,10 +54,40 @@ std::string Server::getHost() const
     return (dynamic_cast<ListenField *>(this->fields.at("listen"))->getHost());
 }
 
+std::string Server::getServerName() const
+{
+    return (dynamic_cast<ServerNameField *>(this->fields.at("server_name"))
+                ->getValue());
+}
+
+std::string Server::getRoot() const
+{
+    return (dynamic_cast<RootField *>(this->fields.at("root"))->getValue());
+}
+
+std::string Server::getErrorPage() const
+{
+    return (dynamic_cast<ErrorPageField *>(this->fields.at("error_page"))
+                ->getValue());
+}
+
+int Server::getClientBodySize() const
+{
+    return (
+        dynamic_cast<ClientBodySizeField *>(this->fields.at("client_body_size"))
+            ->getValue());
+}
+
 std::ostream &operator<<(std::ostream &out, Server const &server)
 {
-    out << "Server: ";
-    out << "Port: " << server.getPort() << " Host: " << server.getHost();
+    out << "Server: " << std::endl;
+    out << "Port: " << server.getPort() << std::endl;
+    out << " Host: " << server.getHost() << std::endl;
+    out << " ServerName: " << server.getServerName() << std::endl;
+    out << " Root: " << server.getRoot() << std::endl;
+    out << " ErrorPage: " << server.getErrorPage() << std::endl;
+    out << " ClientBodySize: " << server.getClientBodySize() << std::endl;
+    out << std::endl;
     return (out);
 }
 
