@@ -1,9 +1,11 @@
+#include "fields/IndexField.hpp"
 #include <Fields.hpp>
 #include <unistd.h>
 
 Location::Location() : BaseField<std::string>()
 {
-    this->fields["root"] = new LocationRootField();
+    this->fields["root"] = new RootField();
+    this->fields["index"] = new IndexField();
 }
 
 Location::~Location() {}
@@ -36,7 +38,7 @@ std::string Location::getPath() const { return this->getValue(); }
 
 std::string Location::getRoot() const
 {
-    return ((LocationRootField *)this->fields.at("root"))->getValue();
+    return ((RootField *)this->fields.at("root"))->getValue();
 }
 
 std::ostream &operator<<(std::ostream &out, Location const &location)

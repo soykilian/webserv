@@ -27,11 +27,14 @@ bool Config::nextToken()
     while (this->configFile.good())
     {
         c = this->configFile.get();
+        std::cout << c;
         if (std::isspace(c))
             break;
         if (c == '#')
-            while (this->configFile.get() != '\n')
-                ;
+        {
+            c = this->configFile.get();
+            while (c != '\n' || std::isspace(c))
+        }
         if (c == ';')
         {
             this->endOfProprty = true;
@@ -121,6 +124,7 @@ bool Config::callProcessServerProperty()
     // until the ; is found
     std::string value;
     std::string key;
+    Base *curr;
 
     key = this->token;
     if (key == "location")
@@ -132,7 +136,15 @@ bool Config::callProcessServerProperty()
         std::cout << "Error: expected ;" << std::endl;
         return false;
     }
-    if (!this->currentServer->fields[key]->processValue(value))
+    curr = this->currentServer->fields[key];
+    if (curr->isPath())
+        this->pendingPaths[key] = value;
+    if (curr->isSet())
+    {
+        std::cerr << key << " is already set." << std::endl;
+        return false;
+    }
+    if (!curr->processValue(value))
         return false;
     return true;
 }

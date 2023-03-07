@@ -7,11 +7,32 @@
 class Base
 {
   public:
-    Base() {}
+    Base()
+    {
+        this->setIsPath(false);
+        this->m_isSet = false;
+    }
     virtual ~Base(){};
     Base(const Base &);
     Base &operator=(const Base &);
     virtual int processValue(std::string value) = 0;
+
+    bool isSet() const { return this->m_isSet; }
+
+    bool isPath() const { return this->m_isPath; }
+
+    void setIsPath(bool isPath) { this->m_isPath = isPath; }
+
+    void setIsSet(bool isSet) { this->m_isSet = isSet; }
+
+    std::string getRoot() { return this->root; }
+
+    void setRoot(std::string str) { this->root = str; }
+
+  private:
+    bool m_isSet;
+    bool m_isPath;
+    std::string root;
 };
 
 template <typename T> class BaseField : public Base
@@ -30,10 +51,8 @@ template <typename T> class BaseField : public Base
     void setValue(T value)
     {
         this->m_data = value;
-        this->m_isSet = true;
+        this->setIsSet(true);
     }
-
-    bool isSet() const { return this->m_isSet; }
 
     virtual int processValue(std::string value)
     {
@@ -43,7 +62,6 @@ template <typename T> class BaseField : public Base
 
   private:
     T m_data;
-    bool m_isSet;
 };
 
 #endif // BASE_HPP

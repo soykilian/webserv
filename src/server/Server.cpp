@@ -1,6 +1,7 @@
 #include "Server.hpp"
 #include "fields/ClientBodySizeField.hpp"
 #include "fields/ErrorPageField.hpp"
+#include "fields/IndexField.hpp"
 #include "fields/ListenField.hpp"
 #include <arpa/inet.h>
 #include <cstdio>
@@ -14,6 +15,7 @@ Server::Server()
     this->fields["root"] = new RootField();
     this->fields["error_page"] = new ErrorPageField();
     this->fields["client_body_size"] = new ClientBodySizeField();
+    this->fields["index"] = new IndexField();
 }
 
 Server::~Server() {}

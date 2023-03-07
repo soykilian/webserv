@@ -40,7 +40,8 @@ class Config
     // property
     bool endOfProprty;
 
-    // Linked list of servers
+    std::map<std::string, std::string> pendingPaths;
+
   public:
     std::vector<Server *> servers;
 
