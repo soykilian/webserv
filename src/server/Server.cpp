@@ -122,6 +122,8 @@ int Server::server_listen()
         exit(EXIT_FAILURE);
     }
 
+    std::cout << "Server is listening on port " << this->getPort() << std::endl;
+
     // while (1)
     // {
     // 	printf("\n+++++++ Waiting for new connection ++++++++\n\n");

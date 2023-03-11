@@ -27,19 +27,27 @@ bool Config::nextToken()
     while (this->configFile.good())
     {
         c = this->configFile.get();
-        std::cout << c;
         if (std::isspace(c))
             break;
         if (c == '#')
         {
             c = this->configFile.get();
-            while (c != '\n' || std::isspace(c))
+            while (c != '\n')
+            {
+                std::cout << c;
+                c = this->configFile.get();
+            }
+            c = this->configFile.get();
+            std::cout << c;
+            while (std::isspace(c))
+                c = this->configFile.get();
         }
         if (c == ';')
         {
             this->endOfProprty = true;
             break;
         }
+        // std::cout << c;
         this->token += c;
     }
     if (this->token.empty())
