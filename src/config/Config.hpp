@@ -52,6 +52,7 @@ class Config
         UNKNOWN
     } ParseState;
 
+    bool processSavedPaths();
     bool callProcessLocationProperty();
     bool processLocation();
     bool callProcessServerProperty();

@@ -39,7 +39,13 @@ template <typename T> class BaseField : public Base
 {
   public:
     BaseField() : Base() {}
-    BaseField(T val) { this->setValue(val); }
+    BaseField(T val) : Base() { this->setValue(val); }
+    BaseField(bool val) : Base() { this->setIsPath(val); }
+    BaseField(T val, bool isPath) : Base()
+    {
+        this->setValue(val);
+        this->setIsPath(isPath);
+    }
     virtual ~BaseField(){};
     BaseField(BaseField const &other) { this->setValue(other.getValue()); }
     BaseField &operator=(BaseField const &other)

@@ -18,7 +18,7 @@ class ClientBodySizeField : public BaseField<int>
     {
         if (!ft::is_number(value))
         {
-            std::cout << "Value is not a number" << std::endl;
+            std::cout << "Value:" << value << " is not a number" << std::endl;
             return 0;
         }
         this->setValue(atoi(value.c_str()));
