@@ -33,12 +33,8 @@ bool Config::nextToken()
         {
             c = this->configFile.get();
             while (c != '\n')
-            {
-                std::cout << c;
                 c = this->configFile.get();
-            }
             c = this->configFile.get();
-            std::cout << c;
             while (std::isspace(c))
                 c = this->configFile.get();
         }
@@ -47,12 +43,38 @@ bool Config::nextToken()
             this->endOfProprty = true;
             break;
         }
-        // std::cout << c;
-        this->token += c;
+        if (c != '#')
+            this->token += c;
     }
     if (this->token.empty())
         return false;
     return (true);
+}
+
+bool Config::processSavedPaths()
+{
+    std::map<std::string, std::string>::iterator it;
+    std::map<std::string, std::string>::iterator ite;
+    std::string root;
+
+    if (this->pendingPaths.find("root") == this->pendingPaths.end())
+        this->currentServer->fields["root"]->processValue("/");
+
+    root = this->currentServer->fields["root"]->getRoot();
+    it = this->pendingPaths.begin();
+    ite = this->pendingPaths.end();
+    while (it != ite)
+    {
+        this->currentServer->fields[it->first]->setRoot(root);
+        if (!this->currentServer->fields[it->first]->processValue(it->second))
+        {
+            std::cerr << "Error: invalid value for " << it->first << std::endl;
+            return false;
+        }
+        it++;
+    }
+    this->pendingPaths.clear();
+    return true;
 }
 
 bool Config::callProcessLocationProperty()
@@ -146,7 +168,10 @@ bool Config::callProcessServerProperty()
     }
     curr = this->currentServer->fields[key];
     if (curr->isPath())
+    {
         this->pendingPaths[key] = value;
+        return true;
+    }
     if (curr->isSet())
     {
         std::cerr << key << " is already set." << std::endl;
@@ -181,7 +206,7 @@ bool Config::parseServer()
         std::cout << "Error: expected }" << std::endl;
         return false;
     }
-    return true;
+    return this->processSavedPaths();
 }
 
 /*

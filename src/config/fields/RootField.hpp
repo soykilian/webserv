@@ -8,8 +8,8 @@
 class RootField : public BaseField<std::string>
 {
   public:
-    RootField() : BaseField<std::string>() {}
-    RootField(std::string val) : BaseField<std::string>(val) {}
+    RootField() : BaseField<std::string>(true) {}
+    RootField(std::string val) : BaseField<std::string>(val, true) {}
     virtual ~RootField() {}
     RootField(RootField const &other);
     RootField &operator=(RootField const &other);
@@ -23,6 +23,7 @@ class RootField : public BaseField<std::string>
             return 0;
         }
         this->setValue(value);
+        this->setRoot(value);
         return 1;
     }
 };

@@ -35,12 +35,12 @@ void Server::setDefaultErrPage()
 
 bool Server::validate()
 {
-    if (!dynamic_cast<ListenField *>(this->fields["listen"])->isSet())
+    if (!this->fields["listen"]->isSet())
     {
-        std::cout << "Listen field is not set." << std::endl;
+        std::cout << "Listen field is not set" << std::endl;
         return false;
     }
-    if (!dynamic_cast<ErrorPageField *>(this->fields["error_page"])->isSet())
+    if (!this->fields["error_page"]->isSet())
         this->setDefaultErrPage();
 
     return true;
