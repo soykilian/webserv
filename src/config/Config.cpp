@@ -229,6 +229,7 @@ void Config::loadConfig()
         }
         else if (state == UNKNOWN && this->token == "server")
         {
+            std::cout << "Parsing server block" << std::endl;
             state = SERVER;
             // Set the current server to the first server in the list
             this->servers.push_back(new Server());
@@ -238,6 +239,7 @@ void Config::loadConfig()
                 std::cerr << "Error: Invalid server block" << std::endl;
                 exit(1);
             }
+            state = UNKNOWN;
             // ------------------- PRINT SERVER -------------------
             std::cout << *this->currentServer << std::endl;
         }
