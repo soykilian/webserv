@@ -68,7 +68,4 @@ re:		fclean all
 debug: CFLAGS += -g
 debug: re
 
-
-
-
 .PHONY:	clean re fclean all bear
