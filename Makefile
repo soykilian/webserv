@@ -10,7 +10,7 @@ SRCS_MAIN	= main.cpp
 
 SRCS_CONFIG	= Config.cpp
 
-SRCS_SERVER	= Server.cpp Request.cpp Response.cpp
+SRCS_SERVER	= Server.cpp Request.cpp Response.cpp Cluster.cpp
 
 SRCS_UTILS	= Utils.cpp
 
@@ -67,8 +67,5 @@ re:		fclean all
 
 debug: CFLAGS += -g
 debug: re
-
-
-
 
 .PHONY:	clean re fclean all bear

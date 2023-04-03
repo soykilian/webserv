@@ -103,7 +103,7 @@ int Server::server_listen()
     if ((fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
     {
         std::cout << "Cannot create socket" << std::endl;
-        return 1;
+        exit(EXIT_FAILURE);
     }
     memset((char *)&address, 0, sizeof(address));
     address.sin_family = AF_INET;
@@ -114,7 +114,7 @@ int Server::server_listen()
     if (bind(fd, (struct sockaddr *)&address, sizeof(address)) < 0)
     {
         perror("In bind");
-        return 1;
+        exit(EXIT_FAILURE);
     }
     if (listen(fd, 3) < 0)
     {
@@ -122,7 +122,8 @@ int Server::server_listen()
         exit(EXIT_FAILURE);
     }
 
-    std::cout << "Server is listening on port " << this->getPort() << std::endl;
+    std::cout << "=> Server is listening on port " << this->getPort()
+              << " <=" << std::endl;
 
     // while (1)
     // {
