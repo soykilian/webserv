@@ -3,19 +3,22 @@
 #include "fields/ErrorPageField.hpp"
 #include "fields/IndexField.hpp"
 #include "fields/ListenField.hpp"
+#include "fields/location/Location.hpp"
+#include <Utils.hpp>
 #include <arpa/inet.h>
 #include <cstdio>
 #include <netinet/ip.h>
+#include <unistd.h>
 
 Server::Server()
 {
-    this->fields["listen"] = new ListenField();
-    this->fields["location"] = new Location();
-    this->fields["server_name"] = new ServerNameField();
-    this->fields["root"] = new RootField();
-    this->fields["error_page"] = new ErrorPageField();
+    this->fields["listen"]           = new ListenField();
+    this->fields["location"]         = new Location();
+    this->fields["server_name"]      = new ServerNameField();
+    this->fields["root"]             = new RootField();
+    this->fields["error_page"]       = new ErrorPageField();
     this->fields["client_body_size"] = new ClientBodySizeField();
-    this->fields["index"] = new IndexField();
+    this->fields["index"]            = new IndexField();
 }
 
 Server::~Server() {}
@@ -93,13 +96,37 @@ std::ostream &operator<<(std::ostream &out, Server const &server)
     return (out);
 }
 
+std::string Server::getResponseFile(std::string route) const
+{
+    std::string responseFile = ft::concatPath(this->getRoot(), route);
+
+    // for (size_t i = 0; i < this->locations.size(); i++)
+    // {
+    //     std::cout << "Location: " << this->locations[i]->getValue()
+    //               << std::endl;
+    // }
+
+    if (access(responseFile.c_str(), F_OK) == -1)
+    {
+        responseFile.clear();
+        return (responseFile);
+    }
+    if (ft::isDirectory(responseFile))
+    {
+        responseFile = ft::concatPath(responseFile, "index.html");
+        if (access(responseFile.c_str(), F_OK) == -1)
+            responseFile.clear();
+    }
+
+    return (responseFile);
+}
+
 int Server::server_listen()
 {
     struct sockaddr_in address;
-    int fd;
-    int yes = 1;
-    std::string hello = "HTTP/1.1 200 OK\nContent-Type: "
-                        "text/plain\nContent-Length: 12\n\nHello world!";
+    int                fd;
+    int                yes = 1;
+
     if ((fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
     {
         std::cout << "Cannot create socket" << std::endl;
@@ -124,24 +151,5 @@ int Server::server_listen()
 
     std::cout << "=> Server is listening on port " << this->getPort()
               << " <=" << std::endl;
-
-    // while (1)
-    // {
-    // 	printf("\n+++++++ Waiting for new connection ++++++++\n\n");
-    // 	if ((new_socket = accept(fd, (struct sockaddr *)&address, (socklen_t
-    // *)&addrlen))< 0)
-    // 	{
-    // 		perror("In accept");
-    // 		exit(EXIT_FAILURE);
-    // 	}
-    //
-    //        char buffer[30000] = {0};
-    //        read( new_socket , buffer, 30000);
-    //        printf("%s\n",buffer );
-    //        write(new_socket , hello.c_str(), strlen(hello.c_str()));
-    //        printf("------------------Hello message
-    //        sent-------------------\n");
-    // 	close(new_socket);
-    // }
     return (fd);
 }

@@ -4,7 +4,7 @@
 
 Location::Location() : BaseField<std::string>()
 {
-    this->fields["root"] = new RootField();
+    this->fields["root"]  = new RootField();
     this->fields["index"] = new IndexField();
 }
 
@@ -25,11 +25,11 @@ Location &Location::operator=(const Location &rhs)
 int Location::processValue(std::string value)
 {
     // check if the path is a valid path
-    if (access(value.c_str(), F_OK) == -1)
-    {
-        std::cout << "Path does not exist" << std::endl;
-        return 0;
-    }
+    // if (access(value.c_str(), F_OK) == -1)
+    // {
+    //     std::cout << "Path does not exist" << std::endl;
+    //     return 0;
+    // }
     this->setValue(value);
     return 1;
 }
