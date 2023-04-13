@@ -19,6 +19,7 @@ Server::Server()
     this->fields["error_page"]       = new ErrorPageField();
     this->fields["client_body_size"] = new ClientBodySizeField();
     this->fields["index"]            = new IndexField();
+    this->next                       = NULL;
 }
 
 Server::~Server() {}
@@ -46,6 +47,16 @@ bool Server::validate()
     if (!this->fields["error_page"]->isSet())
         this->setDefaultErrPage();
 
+    return true;
+}
+
+bool Server::appendServer(Server *server)
+{
+    Server *curr = this;
+
+    while (curr->next)
+        curr = curr->next;
+    curr->next = server;
     return true;
 }
 

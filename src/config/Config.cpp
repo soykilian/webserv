@@ -1,9 +1,8 @@
 #include "Config.hpp"
 #include <cctype>
 
-const std::string Config::DEFAULT_FILE_NAME = CONFIG_FILE;
-std::string Config::USER_SPECIFIED_FILE_NAME = "";
-
+const std::string Config::DEFAULT_FILE_NAME        = CONFIG_FILE;
+std::string       Config::USER_SPECIFIED_FILE_NAME = "";
 /*
  * This function recives a reference to a string
  * and returns true if there is a next token in the
@@ -55,14 +54,14 @@ bool Config::processSavedPaths()
 {
     std::map<std::string, std::string>::iterator it;
     std::map<std::string, std::string>::iterator ite;
-    std::string root;
+    std::string                                  root;
 
     if (this->pendingPaths.find("root") == this->pendingPaths.end())
         this->currentServer->fields["root"]->processValue("/");
 
     root = this->currentServer->fields["root"]->getRoot();
-    it = this->pendingPaths.begin();
-    ite = this->pendingPaths.end();
+    it   = this->pendingPaths.begin();
+    ite  = this->pendingPaths.end();
     while (it != ite)
     {
         this->currentServer->fields[it->first]->setRoot(root);
@@ -154,7 +153,7 @@ bool Config::callProcessServerProperty()
     // until the ; is found
     std::string value;
     std::string key;
-    Base *curr;
+    Base       *curr;
 
     key = this->token;
     if (key == "location")
@@ -217,7 +216,8 @@ bool Config::parseServer()
  */
 void Config::loadConfig()
 {
-    ParseState state = UNKNOWN;
+    ParseState state       = UNKNOWN;
+    bool       firstServer = true;
 
     while (this->nextToken())
     {
@@ -232,15 +232,26 @@ void Config::loadConfig()
             std::cout << "Parsing server block" << std::endl;
             state = SERVER;
             // Set the current server to the first server in the list
-            this->servers.push_back(new Server());
-            this->currentServer = this->servers.back();
+            // this->currentServer = this->servers.back();
+            this->currentServer = new Server();
             if (!this->parseServer() || !this->currentServer->validate())
             {
                 std::cerr << "Error: Invalid server block" << std::endl;
                 exit(1);
             }
-            state = UNKNOWN;
-            // ------------------- PRINT SERVER -------------------
+            for (size_t i = 0; i < this->servers.size(); i++)
+            {
+                if (this->servers[i]->getPort() ==
+                    this->currentServer->getPort())
+                {
+                    this->servers[i]->appendServer(this->currentServer);
+                    firstServer = false;
+                }
+            }
+            if (firstServer)
+                this->servers.push_back(this->currentServer);
+            state       = UNKNOWN;
+            firstServer = true;
             std::cout << *this->currentServer << std::endl;
         }
     }
@@ -264,7 +275,7 @@ Config::Config()
         exit(1);
     }
     this->endOfProprty = false;
-    this->tokens = std::vector<std::string>();
+    this->tokens       = std::vector<std::string>();
     loadConfig();
     this->configFile.close();
 }

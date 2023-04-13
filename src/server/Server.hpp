@@ -18,9 +18,12 @@ class Server
     std::map<std::string, Base *> fields;
     std::vector<Location *>       locations;
 
+    Server *next;
+
     void setDefaultErrPage();
 
     bool validate();
+        bool appendServer(Server *server);
 
     // Getters for all the properties in the map
     int         getPort() const;

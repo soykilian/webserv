@@ -11,8 +11,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv){
     // Check if file name is provided
     // If it is use it if not use default defined in Makefile
     if (argc == 2)
