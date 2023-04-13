@@ -5,74 +5,14 @@
 
 Request::~Request() {}
 
-Request::Request(int fd)
+Request::Request(int fd, Server const &server)
+    : fd(fd), state(0), server(server)
 {
-    char        buffer[BUFFER_SIZE];
-    std::string line;
-    int         i, j;
-    int         rc;
-    std::string key;
-    std::string value;
-    int         state = 0;
-    char        c;
-
-    std::cout << "Request constructor" << std::endl;
-
-    this->bufferLeft = "";
-
-    j = 0;
-
-    while (1)
-    {
-        rc = recv(fd, buffer, BUFFER_SIZE, 0);
-        i  = 0;
-        if (rc <= 0)
-            break;
-        this->bufferLeft += buffer;
-        while ((c = this->bufferLeft[i]) != 0)
-        {
-            if (c == '\n')
-            {
-                line = this->bufferLeft.substr(j, i - j - 1);
-                if (state == 0)
-                {
-                    std::stringstream ss(line);
-                    ss >> this->method >> this->route >> this->version;
-                    state = 1;
-                }
-                else if (state == 1)
-                {
-                    std::stringstream ss(line);
-                    ss >> key >> value;
-                    this->headers[key] = value;
-                }
-                j    = i;
-                line = "";
-            }
-            i++;
-        }
-        this->bufferLeft = this->bufferLeft.substr(j, this->bufferLeft.size());
-        if (rc <= BUFFER_SIZE)
-            break;
-    }
-    // while (1)
-    // {
-    //     rc = recv(fd, buffer, BUFFER_SIZE, 0);
-    //     i  = 0;
-    //     if (rc <= 0)
-    //         break;
-    //     // for (int i = 0; i < rc || buffer[i] != '\n' || buffer[i] != '\r';
-    //     // i++)
-    //     while (i < rc && buffer[i] != '\n' && buffer[i] != '\r')
-    //         line += buffer[i];
-    // }
-    this->body = this->bufferLeft.substr(1);
-    std::cout << "Body: " << this->body << std::endl;
 }
 
-Request::Request() {}
+Request::Request() : server(this->empty) {}
 
-Request::Request(Request const &src) { *this = src; }
+Request::Request(Request const &src) : server(src.server) { *this = src; }
 
 Request &Request::operator=(Request const &rhs)
 {
@@ -96,3 +36,61 @@ std::string Request::getHeader(std::string key) const
 std::string Request::getBody() const { return this->body; }
 
 std::string Request::getMethod() const { return this->method; }
+
+std::string Request::getRoute() const { return this->route; }
+
+std::string Request::getVersion() const { return this->version; }
+
+const Server &Request::getServer() const { return this->server; }
+
+bool Request::read()
+{
+    char        buffer[BUFFER_SIZE + 1];
+    char        c;
+    int         rc, i, j;
+    std::string line, key, value;
+
+    j = 0;
+
+    rc = recv(this->fd, buffer, BUFFER_SIZE, 0);
+    i  = 0;
+    if (rc <= 0)
+        return true;
+    buffer[rc] = 0;
+    this->bufferLeft += buffer;
+    while ((c = this->bufferLeft[i]) != 0)
+    {
+        if (c == '\n')
+        {
+            if (j == i - 2)
+                this->state = 2;
+            line = this->bufferLeft.substr(j, i - j - 1);
+            if (this->state == 0)
+            {
+                std::stringstream ss(line);
+                ss >> this->method >> this->route >> this->version;
+                this->state = 1;
+            }
+            else if (this->state == 1)
+            {
+                std::stringstream ss(line);
+                ss >> key >> value;
+                this->headers[key] = value;
+            }
+            j = i;
+        }
+        i++;
+        if (this->state == 2)
+            break;
+    }
+    if (this->state == 2)
+    {
+        this->body += this->bufferLeft.substr(j);
+        this->bufferLeft.clear();
+    }
+    else
+        this->bufferLeft = this->bufferLeft.substr(j);
+    if (rc < BUFFER_SIZE)
+        return true;
+    return false;
+}
