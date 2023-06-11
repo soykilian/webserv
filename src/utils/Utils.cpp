@@ -20,7 +20,6 @@ static void initMap()
         std::string key    = line.substr(0, line.find_first_of(":"));
         std::string value  = line.substr(line.find_first_of(":") + 1);
         ft::mimeTypes[key] = value;
-        std::cout << "Key: " << key << " Value: " << value << std::endl;
     }
 }
 
@@ -63,8 +62,6 @@ std::string ft::getMimeType(std::string path)
     if (mimeTypes.empty())
         initMap();
 
-    std::cout << "Extension: " << extension << std::endl;
-    std::cout << "Mime type: " << mimeTypes[extension] << std::endl;
     if (mimeTypes.find(extension) == mimeTypes.end())
         return "text/plain";
     return mimeTypes[extension];

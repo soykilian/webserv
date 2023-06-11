@@ -23,7 +23,7 @@ class Server
     void setDefaultErrPage();
 
     bool validate();
-        bool appendServer(Server *server);
+    bool appendServer(Server *server);
 
     // Getters for all the properties in the map
     int         getPort() const;
@@ -32,6 +32,8 @@ class Server
     std::string getRoot() const;
     std::string getServerName() const;
     std::string getErrorPage() const;
+
+    bool isAllowedMethod(std::string method) const;
 
     int  server_listen();
     void server_polling();

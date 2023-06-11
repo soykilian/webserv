@@ -1,7 +1,7 @@
 #ifndef LOCATION_HPP
 #define LOCATION_HPP
 
-#include "../BaseField.hpp"
+#include <Base.hpp>
 #include <iostream>
 #include <map>
 #include <string>
@@ -13,11 +13,11 @@ class Location : public BaseField<std::string>
     Location();
     ~Location();
     Location(const Location &);
-    Location &operator=(const Location &);
+    Location                     &operator=(const Location &);
     std::map<std::string, Base *> fields;
-    int processValue(std::string value);
-    std::string getPath() const;
-    std::string getRoot() const;
+    int                           processValue(std::string value);
+    std::string                   getPath() const;
+    std::string                   getRoot() const;
 };
 
 std::ostream &operator<<(std::ostream &out, Location const &location);

@@ -1,4 +1,5 @@
 #include "Config.hpp"
+#include <Utils.hpp>
 #include <cctype>
 
 const std::string Config::DEFAULT_FILE_NAME        = CONFIG_FILE;
@@ -36,6 +37,8 @@ bool Config::nextToken()
             c = this->configFile.get();
             while (std::isspace(c))
                 c = this->configFile.get();
+            this->configFile.unget();
+            continue;
         }
         if (c == ';')
         {
@@ -159,7 +162,11 @@ bool Config::callProcessServerProperty()
     if (key == "location")
         return (this->processLocation());
     while (this->nextToken() && this->token != ";")
+    {
         value += this->token;
+        if (!this->endOfProprty)
+            value += ' ';
+    }
     if (this->token != ";")
     {
         std::cout << "Error: expected ;" << std::endl;

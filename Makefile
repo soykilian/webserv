@@ -4,7 +4,7 @@ CC		= c++
 
 CONFIG_FILE = webserv.conf
 
-CFLAGS	= -Werror -Wextra -Wall -std=c++98 -pedantic -fsanitize=address -D CONFIG_FILE=\"$(CONFIG_FILE)\"
+CFLAGS	= -Werror -Wextra -Wall -std=c++98 -pedantic -D CONFIG_FILE=\"$(CONFIG_FILE)\"
 
 SRCS_MAIN	= main.cpp
 
@@ -14,7 +14,10 @@ SRCS_SERVER	= Server.cpp Request.cpp Response.cpp Cluster.cpp
 
 SRCS_UTILS	= Utils.cpp
 
-SRCS_FIELDS	= Location.cpp
+SRCS_FIELDS	= AllowedMethodsField.cpp Base.cpp ClientBodySizeField.cpp \
+			  IndexField.cpp Location.cpp ServerNameField.cpp \
+			  ErrorPageField.cpp ListenField.cpp RootField.cpp
+
 
 SRCS		= ${SRCS_MAIN} \
 				$(addprefix config/, ${SRCS_CONFIG}) \
@@ -63,9 +66,18 @@ fclean:		clean
 bear : fclean
 	@bear -- make
 
+rrun: re
+	./${NAME}
+
+run: all
+	./${NAME}
+
 re:		fclean all
 
-debug: CFLAGS += -g
-debug: re
+debug: CFLAGS += -g -D DEBUG
+debug: all
 
-.PHONY:	clean re fclean all bear
+rdebug: CFLAGS += -g -D DEBUG
+rdebug: re
+
+.PHONY:	clean re fclean all bear run rrun debug rdebug

@@ -19,7 +19,7 @@ class Response
     const Server &server;
     Server        empty;
 
-    std::string getErrorPage();
+    std::string getErrorPage(std::string code);
 };
 
 #endif // !RESPONSE_HPP

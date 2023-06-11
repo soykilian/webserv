@@ -1,12 +1,9 @@
 #include "Server.hpp"
-#include "fields/ClientBodySizeField.hpp"
-#include "fields/ErrorPageField.hpp"
-#include "fields/IndexField.hpp"
-#include "fields/ListenField.hpp"
-#include "fields/location/Location.hpp"
+#include <Fields.hpp>
 #include <Utils.hpp>
 #include <arpa/inet.h>
 #include <cstdio>
+#include <iostream>
 #include <netinet/ip.h>
 #include <unistd.h>
 
@@ -19,6 +16,7 @@ Server::Server()
     this->fields["error_page"]       = new ErrorPageField();
     this->fields["client_body_size"] = new ClientBodySizeField();
     this->fields["index"]            = new IndexField();
+    this->fields["methods"]          = new AllowedMethodsField();
     this->next                       = NULL;
 }
 
@@ -94,6 +92,12 @@ int Server::getClientBodySize() const
             ->getValue());
 }
 
+bool Server::isAllowedMethod(std::string method) const
+{
+    return (dynamic_cast<AllowedMethodsField *>(this->fields.at("methods"))
+                ->validate(method));
+}
+
 std::ostream &operator<<(std::ostream &out, Server const &server)
 {
     out << "Server: " << std::endl;
@@ -111,11 +115,19 @@ std::string Server::getResponseFile(std::string route) const
 {
     std::string responseFile = ft::concatPath(this->getRoot(), route);
 
-    // for (size_t i = 0; i < this->locations.size(); i++)
-    // {
-    //     std::cout << "Location: " << this->locations[i]->getValue()
-    //               << std::endl;
-    // }
+#ifdef DEBUG
+    for (size_t i = 0; i < this->locations.size(); i++)
+    {
+        std::cout << "******************LOCATIONS:**********************"
+                  << std::endl;
+        if ((route.substr(0, this->locations[i]->getValue().length()) ==
+             this->locations[i]->getValue()))
+            std::cout << "Location: " << this->locations[i]->getValue()
+                      << std::endl;
+        std::cout << "**************************************************"
+                  << std::endl;
+    }
+#endif // DEBUG
 
     if (access(responseFile.c_str(), F_OK) == -1)
     {
@@ -127,6 +139,7 @@ std::string Server::getResponseFile(std::string route) const
         responseFile = ft::concatPath(responseFile, "index.html");
         if (access(responseFile.c_str(), F_OK) == -1)
             responseFile.clear();
+        std::cout << "ResponseFile: " << responseFile << std::endl;
     }
 
     return (responseFile);

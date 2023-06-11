@@ -23,12 +23,14 @@ Response::Response(const Response &other)
 {
 }
 
-std::string Response::getErrorPage()
+std::string Response::getErrorPage(std::string code)
 {
     std::string   message;
     std::string   body;
     std::string   line;
     std::ifstream file;
+
+    (void)code;
 
     if (!this->server.getErrorPage().empty())
     {
@@ -68,27 +70,37 @@ std::string Response::getResponse()
 
     std::cout << "Asking for route: " << this->request->getRoute() << std::endl;
 
-    std::cout << "File to serve: " << std::endl << fileName << std::endl;
+    std::cout << "File to serve: " << fileName << std::endl;
 
+    std::cout << "Method: " << this->request->getMethod() << std::endl;
+
+    std::cout << "Is method allowed: "
+              << this->server.isAllowedMethod(this->request->getMethod())
+              << std::endl;
+
+    // TODO ERROR PAGE 405
+    if (!this->server.isAllowedMethod(this->request->getMethod()))
+        return getErrorPage("405");
+
+    // TODO ERROR PAGE 404
     if (fileName.empty())
-        return getErrorPage();
+        return getErrorPage("404");
 
     std::ifstream file(fileName);
 
+    // TODO ERROR PAGE 404
+    if (!file.is_open())
+        return getErrorPage("404");
+
     while (std::getline(file, line))
         body += line;
-
-    if (!file.is_open())
-        return getErrorPage();
 
     message += "Content-Type: ";
     message += ft::getMimeType(fileName);
     message += "\n";
     message += "Content-Length: ";
-    // message += std::to_string(this->request->getBody().length());
     message += std::to_string(body.length());
     message += "\n\n";
-    // message += this->request->getBody();
     message += body;
 
     return message;
