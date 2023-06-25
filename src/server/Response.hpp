@@ -20,6 +20,7 @@ class Response
     Server        empty;
 
     std::string getErrorPage(std::string code);
+    std::string   addDate(std::string message);
 };
 
 #endif // !RESPONSE_HPP

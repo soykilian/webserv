@@ -22,7 +22,18 @@ Response::Response(const Response &other)
     : request(other.request), server(other.request->getServer())
 {
 }
-
+std::string Response::addDate(std::string message)
+{
+    std::time_t currentTime = std::time(nullptr);
+    std::string stringTime = std::ctime(&currentTime);
+    std::stringstream ss(stringTime);
+    std::string token;
+    std::vector<std::string> tokens;
+    while(ss >> token)
+        tokens.push_back(token);
+    message += tokens[0] + ", " + tokens[2] + " " + tokens[1] + " " + tokens[4] + " " + tokens[3] + " GMT";
+    return message;
+}
 std::string Response::getErrorPage(std::string code)
 {
     std::string   message;
@@ -53,7 +64,9 @@ std::string Response::getErrorPage(std::string code)
     message = "HTTP/1.1 404 Not Found\r\n";
     message += "Content-Type: text/html\n";
     message += "Content-Length: ";
-    message += std::to_string(body.length());
+    message += std::to_string(body.length()) +"\n";
+    message += "Date: ";
+    message= addDate(message);
     message += "\n\n";
     message += body;
 
