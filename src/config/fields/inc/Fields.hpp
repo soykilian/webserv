@@ -10,5 +10,6 @@
 #include "./ListenField.hpp"
 #include "./RootField.hpp"
 #include "./ServerNameField.hpp"
+#include "./LoadFolderField.hpp"
 
 #endif // !FIELD_HPP
