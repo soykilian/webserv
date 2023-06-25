@@ -37,6 +37,7 @@ class Request
     int                                state;
     const Server                      &server;
     Server                             empty;
+    void                               limitBody();
 };
 
 #endif // !REQUEST_HPP

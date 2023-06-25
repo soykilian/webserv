@@ -42,6 +42,18 @@ std::string Request::getRoute() const { return this->route; }
 std::string Request::getVersion() const { return this->version; }
 
 const Server &Request::getServer() const { return this->server; }
+void Request::limitBody(){
+    std::map<std::string, std::string>::iterator iterator = this->headers.find("Content-Length");
+
+    if (iterator != this->headers.end())
+    {
+        int contentLength = std::stoi(iterator->second);
+        int clientSize = this->getServer().getClientBodySize();
+        int maxLength = std::min(contentLength, clientSize);
+        if (static_cast<int>(this->body.length()) > maxLength)
+                this->body = this->body.substr(0, maxLength+1);
+    }
+}
 
 bool Request::read()
 {
@@ -75,6 +87,7 @@ bool Request::read()
             {
                 std::stringstream ss(line);
                 ss >> key >> value;
+                key.erase(key.end() - 1);
                 this->headers[key] = value;
             }
             j = i;
@@ -86,6 +99,9 @@ bool Request::read()
     if (this->state == 2)
     {
         this->body += this->bufferLeft.substr(j);
+        std::cout << this->body<< std::endl;
+        limitBody();
+        std::cout << this->body<< std::endl;
         this->bufferLeft.clear();
     }
     else
