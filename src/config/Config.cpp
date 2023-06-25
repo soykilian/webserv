@@ -59,7 +59,7 @@ bool Config::processSavedPaths()
     std::map<std::string, std::string>::iterator ite;
     std::string                                  root;
 
-    if (this->pendingPaths.find("root") == this->pendingPaths.end())
+    if (!this->currentServer->fields["root"]->isSet())
         this->currentServer->fields["root"]->processValue("/");
 
     root = this->currentServer->fields["root"]->getRoot();
