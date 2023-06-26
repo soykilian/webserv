@@ -117,6 +117,10 @@ std::ostream &operator<<(std::ostream &out, Server const &server)
     out << std::endl;
     return (out);
 }
+std::string Server::getFileEnd() const
+{
+    return (dynamic_cast<LoadFolderField *>(this->fields.at("post_folder"))->getValue());
+}
 
 std::vector<Location *> Server::findLocationsByPath(std::string path) const
 {

@@ -98,10 +98,10 @@ bool Request::read()
     }
     if (this->state == 2)
     {
+        if (this->body.empty())
+            j++;
         this->body += this->bufferLeft.substr(j);
-        std::cout << this->body<< std::endl;
         limitBody();
-        std::cout << this->body<< std::endl;
         this->bufferLeft.clear();
     }
     else

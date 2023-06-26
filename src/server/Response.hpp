@@ -13,6 +13,7 @@ class Response
     Response &operator=(const Response &other);
     Response(const Response &other);
     std::string getResponse();
+    bool fileEdition(int flag);
 
   private:
     Request                *request;

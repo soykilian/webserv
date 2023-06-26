@@ -33,6 +33,7 @@ class Server
     std::string getIndex() const;
     std::string getServerName() const;
     std::string getErrorPage() const;
+    std::string getFileEnd() const;
 
     bool isAllowedMethod(std::string method) const;
 
