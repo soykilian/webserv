@@ -112,12 +112,10 @@ std::ostream &operator<<(std::ostream &out, Server const &server)
     out << std::endl;
     return (out);
 }
-<<<<<<< HEAD
 std::string Server::getFileEnd() const
 {
     return (dynamic_cast<LoadFolderField *>(this->fields.at("post_folder"))->getValue());
 }
-=======
 
 std::vector<Location *> Server::findLocationsByPath(std::string path) const
 {
@@ -132,7 +130,6 @@ std::vector<Location *> Server::findLocationsByPath(std::string path) const
     return res;
 }
 
->>>>>>> ced6202e29a8d709cc0e2e9f2808a8758eb2082c
 std::string Server::getResponseFile(std::string route) const
 {
     std::string responseFile = ft::concatPath(this->getRoot(), route);

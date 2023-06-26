@@ -101,7 +101,6 @@ bool Request::read()
         if (this->body.empty())
             j++;
         this->body += this->bufferLeft.substr(j);
-        std::cout << "BODY: " << this->body<< std::endl;
         limitBody();
         this->bufferLeft.clear();
     }
