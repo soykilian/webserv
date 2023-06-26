@@ -15,9 +15,10 @@ class Response
     std::string getResponse();
 
   private:
-    Request      *request;
-    const Server &server;
-    Server        empty;
+    Request                *request;
+    const Server           &server;
+    Server                  empty;
+    std::vector<Location *> locations;
 
     std::string getErrorPage(std::string code);
     std::string   addDate(std::string message);

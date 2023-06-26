@@ -2,6 +2,7 @@
 #include <Response.hpp>
 #include <fstream>
 #include <string>
+#include <vector>
 
 Response::Response(Request *request)
     : request(request), server(request->getServer())
@@ -79,10 +80,15 @@ std::string Response::getErrorPage(std::string code)
 std::string Response::getResponse()
 {
     std::string message = "HTTP/1.1 200 OK\r\n";
-    std::string fileName =
-        this->server.getResponseFile(this->request->getRoute());
     std::string body;
     std::string line;
+    std::string fileName =
+        this->server.getResponseFile(this->request->getRoute());
+
+    this->locations =
+        this->server.findLocationsByPath(this->request->getRoute());
+
+#ifdef DEBUG
 
     std::cout << "Asking for route: " << this->request->getRoute() << std::endl;
 
@@ -93,6 +99,8 @@ std::string Response::getResponse()
     std::cout << "Is method allowed: "
               << this->server.isAllowedMethod(this->request->getMethod())
               << std::endl;
+
+#endif // !DEBUG
 
     // TODO ERROR PAGE 405
     if (!this->server.isAllowedMethod(this->request->getMethod()))

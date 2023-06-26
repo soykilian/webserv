@@ -6,6 +6,7 @@
 #include <iostream>
 #include <netinet/ip.h>
 #include <unistd.h>
+#include <vector>
 
 Server::Server()
 {
@@ -111,6 +112,19 @@ std::ostream &operator<<(std::ostream &out, Server const &server)
     return (out);
 }
 
+std::vector<Location *> Server::findLocationsByPath(std::string path) const
+{
+    std::vector<Location *> res = std::vector<Location *>();
+    for (size_t i = 0; i < this->locations.size(); i++)
+    {
+        if ((path.substr(0, this->locations[i]->getValue().length()) ==
+             this->locations[i]->getValue()))
+            res.push_back(this->locations[i]);
+    }
+
+    return res;
+}
+
 std::string Server::getResponseFile(std::string route) const
 {
     std::string responseFile = ft::concatPath(this->getRoot(), route);
@@ -127,7 +141,27 @@ std::string Server::getResponseFile(std::string route) const
         std::cout << "**************************************************"
                   << std::endl;
     }
+
+    std::cout << "ResponseFile: " << responseFile << std::endl;
+
 #endif // DEBUG
+    //
+
+    for (size_t i = 0; i < this->locations.size(); i++)
+    {
+        if ((route.substr(0, this->locations[i]->getValue().length()) ==
+             this->locations[i]->getValue()))
+        {
+            responseFile = ft::concatPath(
+                this->locations[i]->getRoot(),
+                ft::removeRootFromPath(this->locations[i]->getValue(), route));
+            if (access(responseFile.c_str(), F_OK) == -1)
+                responseFile.clear();
+            std::cout << "ResponseFile for location: " << responseFile
+                      << std::endl;
+            // return (responseFile);
+        }
+    }
 
     if (access(responseFile.c_str(), F_OK) == -1)
     {
