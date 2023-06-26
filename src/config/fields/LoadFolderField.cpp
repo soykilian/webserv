@@ -26,14 +26,13 @@ LoadFolderField::operator=(const LoadFolderField &other)
 
 int LoadFolderField::processValue(std::string value)
 {
-    if (value.find("/") == 0)
-        value = value.substr(1);
-    std::string folderPath = this->getRoot() +"/"+ value;
+    std::string folderPath = ft::concatPath(this->getRoot(),value);
     std::cout << "Folder path: " << folderPath << std::endl;
     if (access(folderPath.c_str(), F_OK) == -1)
     {
         std::cout << "Folder does not exist" << std::endl;
         return 0;
     }
+    this->setValue(folderPath);
     return 1;
 }

@@ -111,7 +111,10 @@ std::ostream &operator<<(std::ostream &out, Server const &server)
     out << std::endl;
     return (out);
 }
-
+std::string Server::getFileEnd() const
+{
+    return (dynamic_cast<LoadFolderField *>(this->fields.at("post_folder"))->getValue());
+}
 std::string Server::getResponseFile(std::string route) const
 {
     std::string responseFile = ft::concatPath(this->getRoot(), route);

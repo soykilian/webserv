@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <string>
 #include <unistd.h>
+#include <Utils.hpp>
 #include <sstream>
 
 class LoadFolderField : public BaseField<std::string>
@@ -16,11 +17,7 @@ class LoadFolderField : public BaseField<std::string>
     LoadFolderField(LoadFolderField const &other);
     LoadFolderField &operator=(LoadFolderField const &other);
 
-
     int processValue(std::string value);
-
-  private:
-    std::string value;
 };
 
 #endif // DEBUG

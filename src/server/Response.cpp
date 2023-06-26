@@ -72,27 +72,45 @@ std::string Response::getErrorPage(std::string code)
 
     return message;
 }
-bool fileEdition(int flag)
+bool Response::fileEdition(int flag)
 {
- /*   if (flag == 1)
+    std::ofstream file;
+    std::string route;
+    std::string::size_type  idx =this->request->getRoute().find_last_of('/');
+    route = this->server.getFileEnd() + "/" + this->request->getRoute().substr(idx+1);
+    /*POST*/
+    if (flag == 1)
     {
-        std::ofstream file;
-        file.open(this->server.getResponseFile(this->request->getRoute()));
+        file.open(route);
         if (!file.is_open())
+        {
+            std::cout << "Error opening file" << std::endl;
             return false;
+        }
         file << this->request->getBody();
         file.close();
     }
-    */
+    /*DELETE*/
+    else
+    {
+       int result = std::remove(route.c_str());
+       if (result != 0)
+       {
+           std::cout << "Error deleting file" << std::endl;
+           return false;
+       }
+       else
+           std::cout << "File successfully deleted" << std::endl;
+    }
    return true;
-    
 }
+
 std::string Response::getResponse()
 {
     std::string message = "HTTP/1.1 200 OK\r\n";
-    if (this->request->getMethod().c_str() == "POST")
+    if (this->request->getMethod().compare("POST")==0)
         fileEdition(1);
-    if (this->request->getMethod().c_str() == "DELETE")
+    if (this->request->getMethod().compare("DELETE")==0)
         fileEdition(0);
 
     std::string fileName =

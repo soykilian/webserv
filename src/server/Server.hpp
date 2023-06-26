@@ -32,6 +32,7 @@ class Server
     std::string getRoot() const;
     std::string getServerName() const;
     std::string getErrorPage() const;
+    std::string getFileEnd() const;
 
     bool isAllowedMethod(std::string method) const;
 
