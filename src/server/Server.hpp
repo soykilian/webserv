@@ -30,6 +30,7 @@ class Server
     int         getClientBodySize() const;
     std::string getHost() const;
     std::string getRoot() const;
+    std::string getIndex() const;
     std::string getServerName() const;
     std::string getErrorPage() const;
 

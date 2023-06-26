@@ -78,6 +78,7 @@ std::string Response::getErrorPage(std::string code)
 }
 bool fileEdition(int flag)
 {
+    (void)flag;
     /*   if (flag == 1)
        {
            std::ofstream file;
@@ -93,10 +94,10 @@ bool fileEdition(int flag)
 std::string Response::getResponse()
 {
     std::string message = "HTTP/1.1 200 OK\r\n";
-    if (this->request->getMethod().c_str() == "POST")
-        fileEdition(1);
-    if (this->request->getMethod().c_str() == "DELETE")
-        fileEdition(0);
+    // if (this->request->getMethod().c_str() == "POST")
+    //     fileEdition(1);
+    // if (this->request->getMethod().c_str() == "DELETE")
+    //     fileEdition(0);
 
     std::string fileName =
         this->server.getResponseFile(this->request->getRoute());

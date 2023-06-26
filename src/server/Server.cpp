@@ -81,6 +81,11 @@ std::string Server::getRoot() const
     return (dynamic_cast<RootField *>(this->fields.at("root"))->getValue());
 }
 
+std::string Server::getIndex() const
+{
+    return (dynamic_cast<IndexField *>(this->fields.at("index"))->getValue());
+}
+
 std::string Server::getErrorPage() const
 {
     return (dynamic_cast<ErrorPageField *>(this->fields.at("error_page"))
@@ -129,6 +134,7 @@ std::vector<Location *> Server::findLocationsByPath(std::string path) const
 std::string Server::getResponseFile(std::string route) const
 {
     std::string responseFile = ft::concatPath(this->getRoot(), route);
+    std::string indexFile    = ft::concatPath(responseFile, this->getIndex());
 
 #ifdef DEBUG
     for (size_t i = 0; i < this->locations.size(); i++)
@@ -158,9 +164,6 @@ std::string Server::getResponseFile(std::string route) const
                 ft::removeRootFromPath(this->locations[i]->getValue(), route));
             if (access(responseFile.c_str(), F_OK) == -1)
                 responseFile.clear();
-            std::cout << "ResponseFile for location: " << responseFile
-                      << std::endl;
-            // return (responseFile);
         }
     }
 
@@ -171,7 +174,7 @@ std::string Server::getResponseFile(std::string route) const
     }
     if (ft::isDirectory(responseFile))
     {
-        responseFile = ft::concatPath(responseFile, "index.html");
+        responseFile = indexFile;
         if (access(responseFile.c_str(), F_OK) == -1)
             responseFile.clear();
         std::cout << "ResponseFile: " << responseFile << std::endl;
