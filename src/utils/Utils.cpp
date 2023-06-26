@@ -48,6 +48,21 @@ std::string ft::concatPath(std::string root, std::string path)
     return root + "/" + path;
 }
 
+std::string ft::removeRootFromPath(std::string root, std::string path)
+{
+    if (root.empty() || path.empty())
+        return path;
+
+    // Remove the root from the start of the path
+    //  Example:
+    //  root = "/home/user" path = "/home/user/file.txt"
+    //  result = "/file.txt"
+    if (path.find(root) == 0)
+        path = path.substr(root.length());
+
+    return path;
+}
+
 bool ft::isDirectory(std::string path)
 {
     struct stat statbuf;

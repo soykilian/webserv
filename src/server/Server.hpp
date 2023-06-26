@@ -39,6 +39,8 @@ class Server
     int  server_listen();
     void server_polling();
 
+    std::vector<Location *> findLocationsByPath(std::string path) const;
+
     std::string getResponseFile(std::string route) const;
 };
 

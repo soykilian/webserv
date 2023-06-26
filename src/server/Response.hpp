@@ -16,9 +16,10 @@ class Response
     bool fileEdition(int flag);
 
   private:
-    Request      *request;
-    const Server &server;
-    Server        empty;
+    Request                *request;
+    const Server           &server;
+    Server                  empty;
+    std::vector<Location *> locations;
 
     std::string getErrorPage(std::string code);
     std::string   addDate(std::string message);
