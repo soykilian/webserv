@@ -16,7 +16,8 @@ SRCS_UTILS	= Utils.cpp
 
 SRCS_FIELDS	= AllowedMethodsField.cpp Base.cpp ClientBodySizeField.cpp \
 			  IndexField.cpp Location.cpp ServerNameField.cpp \
-			  ErrorPageField.cpp ListenField.cpp RootField.cpp
+			  ErrorPageField.cpp ListenField.cpp RootField.cpp \
+			  LoadFolderField.cpp
 
 
 SRCS		= ${SRCS_MAIN} \

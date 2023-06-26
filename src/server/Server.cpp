@@ -18,6 +18,7 @@ Server::Server()
     this->fields["client_body_size"] = new ClientBodySizeField();
     this->fields["index"]            = new IndexField();
     this->fields["methods"]          = new AllowedMethodsField();
+    this->fields["post_folder"]      = new LoadFolderField();
     this->next                       = NULL;
 }
 

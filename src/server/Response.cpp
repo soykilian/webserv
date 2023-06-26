@@ -76,14 +76,32 @@ std::string Response::getErrorPage(std::string code)
 
     return message;
 }
-
+bool fileEdition(int flag)
+{
+    /*   if (flag == 1)
+       {
+           std::ofstream file;
+           file.open(this->server.getResponseFile(this->request->getRoute()));
+           if (!file.is_open())
+               return false;
+           file << this->request->getBody();
+           file.close();
+       }
+       */
+    return true;
+}
 std::string Response::getResponse()
 {
     std::string message = "HTTP/1.1 200 OK\r\n";
-    std::string body;
-    std::string line;
+    if (this->request->getMethod().c_str() == "POST")
+        fileEdition(1);
+    if (this->request->getMethod().c_str() == "DELETE")
+        fileEdition(0);
+
     std::string fileName =
         this->server.getResponseFile(this->request->getRoute());
+    std::string body;
+    std::string line;
 
     this->locations =
         this->server.findLocationsByPath(this->request->getRoute());
@@ -124,8 +142,9 @@ std::string Response::getResponse()
     message += "\n";
     message += "Content-Length: ";
     message += std::to_string(body.length());
+    message += "Date: ";
+    message = addDate(message);
     message += "\n\n";
     message += body;
-
     return message;
 }
