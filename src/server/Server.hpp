@@ -41,6 +41,7 @@ class Server
     void server_polling();
 
     std::vector<Location *> findLocationsByPath(std::string path) const;
+    Location               *findLongestLocationByPath(std::string path) const;
 
     std::string getResponseFile(std::string route) const;
 };

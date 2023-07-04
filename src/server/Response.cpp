@@ -162,9 +162,15 @@ std::string Response::getResponse()
     message += "\n";
     message += "Content-Length: ";
     message += std::to_string(body.length());
+    message += "\n";
     message += "Date: ";
     message = addDate(message);
     message += "\n\n";
     message += body;
+#ifdef DEBUG
+    std::cout << "*** RESPONSE ***" << std::endl;
+    std::cout << message << std::endl;
+    std::cout << "*** END RESPONSE ***" << std::endl;
+#endif
     return message;
 }

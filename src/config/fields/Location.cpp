@@ -41,6 +41,11 @@ std::string Location::getRoot() const
     return ((RootField *)this->fields.at("root"))->getValue();
 }
 
+std::string Location::getIndex() const
+{
+    return ((RootField *)this->fields.at("index"))->getValue();
+}
+
 std::ostream &operator<<(std::ostream &out, Location const &location)
 {
     out << "Location path: " << location.getPath()

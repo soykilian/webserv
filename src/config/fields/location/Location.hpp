@@ -18,6 +18,7 @@ class Location : public BaseField<std::string>
     int                           processValue(std::string value);
     std::string                   getPath() const;
     std::string                   getRoot() const;
+    std::string                   getIndex() const;
 };
 
 std::ostream &operator<<(std::ostream &out, Location const &location);
