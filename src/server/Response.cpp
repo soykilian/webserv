@@ -3,7 +3,8 @@
 #include <fstream>
 #include <string>
 #include <vector>
-
+# define READ_END 0
+# define WRITE_END 1
 Response::Response(Request *request)
     : request(request), server(request->getServer())
 {
@@ -110,14 +111,122 @@ bool Response::fileEdition(int flag)
     return true;
 }
 
+char **Response::set_env()
+{
+    std::map<std::string, std::string> env;
+    env["SERVER_SOFTWARE"] = "";
+    env["SERVER_NAME"] = this->server.getHost();
+    env["GATEWAY_INTERFACE"] = "CGI/version";
+    env["SERVER_PROTOCOL"]= this->request->getVersion();
+    env["SERVER_PORT"]=this->server.getPort();
+    env["PATH_INFO"] = this->request->getRoute();
+    env["PATH_TRANSLATED"] = ft::concatPath(this->server.getRoot(), env["PATH_INFO"]);
+    env["SCRIPT_NAME"] = this->cgi_path;
+    env["QUERY_STRING"] = this->query_params;
+    env["REMOTE_ADDR"] = this->request->getHeader("X-Forwarded-For");
+    if (this->request->getMethod().compare("POST") == 0)
+    {
+        env["CONTENT_TYPE"] = this->request->getHeader("Content-Type");
+        env["CONTENT_LENGTH"] = this->request->getHeader("Content-Length");
+    }
+    std::map<std::string, std::string>::iterator it;
+    std::vector<char*> envMatrix;
+    for (it = env.begin(); it != env.end(); ++it) {
+        std::string variable = it->first + "=" + it->second;
+        char* envEntry = new char[variable.size() + 1];
+        std::strcpy(envEntry, variable.c_str());
+        envMatrix.push_back(envEntry);
+    }
+    envMatrix.push_back(NULL);
+    char** envArray = new char*[envMatrix.size()];
+    std::copy(envMatrix.begin(), envMatrix.end(), envArray);
+    for (std::vector<char*>::iterator it = envMatrix.begin(); it != envMatrix.end(); ++it) {
+        delete[] (*it);
+    }
+    return envArray;
+}
+
+std::string Response::get_cgi()
+{
+    std::string route = this->php_path;
+    char *tmp = getenv("PATH");
+    if (!tmp)
+        return getErrorPage("404");
+    char *env = (char *) malloc(strlen(tmp));
+    strcpy(env, tmp);
+    std::string root = this->server.getRoot();
+    route = ft::concatPath(root, route);
+    std::cout<< "Route: "<< route << std::endl;
+    if (access(route.c_str(), F_OK) ==-1)
+        return getErrorPage("404");
+    char *token = std::strtok(const_cast<char*>(env), ":");
+    std::string path;
+    while (token != NULL) {
+        path = token;
+        path.append("/php");
+        if (access(path.c_str(), F_OK) == 0)
+            break;
+        token = std::strtok(NULL, ":"); 
+    }
+    char* const args[] = {const_cast<char*>(path.c_str()), const_cast<char*>(route.c_str()), NULL};
+    std::cout << path << std::endl;
+    int fd[2];
+    pipe(fd);
+    int pid = fork();
+    if (pid == 0)
+    {
+        close(fd[READ_END]);
+        dup2(fd[WRITE_END], STDOUT_FILENO);
+        close(fd[WRITE_END]);
+        char **env = set_env();
+        execve(path.c_str(), args, env);
+        delete[] env;
+        perror("execve");
+        exit(1);
+    }
+    else
+    {
+        close(fd[WRITE_END]);
+        char buffer[1024];
+        std::string capturedOutput;
+        ssize_t bytesRead;
+        while ((bytesRead = read(fd[READ_END], buffer, sizeof(buffer))) > 0)
+            capturedOutput.append(buffer, bytesRead);
+        close(fd[READ_END]);
+        return capturedOutput;
+    }
+    return getErrorPage("404");
+}
+
 std::string Response::getResponse()
 {
     std::string message = "HTTP/1.1 200 OK\r\n";
+    std::string route = this->request->getRoute();
+    int index = route.find(".php");
+    int query_index = route.find("?");
+    if (index != -1)
+    {
+        if (route.length() != static_cast<size_t>(index)+4)
+        {
+            std::cout << route.length() <<" " <<index << std::endl;
+            if(route.at(index+4) != 47)
+                return getErrorPage("404");
+        }
+        this->query_params = "";
+        if (query_index != -1)
+        {
+            this->cgi_path = route.substr(index+ 4, query_index);
+            this->query_params = route.substr(query_index);
+        }
+        else
+            this->cgi_path = route.substr(index+ 4);
+        this->php_path = route.substr(0, index+4);
+        return get_cgi();
+    }
     if (this->request->getMethod().compare("POST") == 0)
         fileEdition(1);
     if (this->request->getMethod().compare("DELETE") == 0)
         fileEdition(0);
-
     std::string fileName =
         this->server.getResponseFile(this->request->getRoute());
     std::string body;
