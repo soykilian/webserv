@@ -20,9 +20,14 @@ class Response
     const Server           &server;
     Server                  empty;
     std::vector<Location *> locations;
+    std::string             cgi_path;
+    std::string             php_path;
+    std::string             query_params;
 
     std::string getErrorPage(std::string code);
     std::string   addDate(std::string message);
+    std::string   get_cgi();
+    char **set_env();
 };
 
 #endif // !RESPONSE_HPP
