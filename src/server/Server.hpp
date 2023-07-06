@@ -36,12 +36,15 @@ class Server
     std::string getFileEnd() const;
 
     bool isAllowedMethod(std::string method) const;
+    bool isAllowedMethodByPath(std::string method, std::string path) const;
 
     int  server_listen();
     void server_polling();
 
     std::vector<Location *> findLocationsByPath(std::string path) const;
     Location               *findLongestLocationByPath(std::string path) const;
+
+    const Server &getServerByHost(std::string server_name);
 
     std::string getResponseFile(std::string route) const;
 };

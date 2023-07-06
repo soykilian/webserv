@@ -105,6 +105,35 @@ bool Server::isAllowedMethod(std::string method) const
                 ->validate(method));
 }
 
+bool Server::isAllowedMethodByPath(std::string method, std::string path) const
+{
+    Server const *current = this;
+    bool          res     = false;
+
+    while (current)
+    {
+        if (!current->isAllowedMethod(method))
+            return false;
+        if (!this->findLongestLocationByPath(path)->isAllowedMethod(method))
+            return false;
+        current = current->next;
+    }
+    return res;
+}
+
+const Server &Server::getServerByHost(std::string server_name)
+{
+    Server const *current = this;
+
+    while (current)
+    {
+        if (current->getServerName() == server_name)
+            return *current;
+        current = current->next;
+    }
+    return *this;
+}
+
 std::ostream &operator<<(std::ostream &out, Server const &server)
 {
     out << "Server: " << std::endl;

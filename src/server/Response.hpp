@@ -13,7 +13,7 @@ class Response
     Response &operator=(const Response &other);
     Response(const Response &other);
     std::string getResponse();
-    bool fileEdition(int flag);
+    bool        fileEdition(int flag);
 
   private:
     Request                *request;
@@ -25,9 +25,11 @@ class Response
     std::string             query_params;
 
     std::string getErrorPage(std::string code);
-    std::string   addDate(std::string message);
-    std::string   get_cgi();
-    char **set_env();
+    std::string addDate(std::string message);
+    std::string getPath();
+    std::string get_cgi();
+    std::string processCgi();
+    char      **set_env();
 };
 
 #endif // !RESPONSE_HPP
