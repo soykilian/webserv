@@ -280,8 +280,6 @@ std::string Server::getResponseFile(std::string route, short *flag) const
             *flag = 1;
             return directoryListing(responseFile, route);
         }
-        std::cout << "ResponseFile: " << responseFile << std::endl;
-            responseFile.clear();
     }
 
     return (responseFile);
