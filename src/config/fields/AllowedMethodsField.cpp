@@ -23,13 +23,18 @@ AllowedMethodsField::operator=(const AllowedMethodsField &other)
 
 bool AllowedMethodsField::validate(std::string value)
 {
-    std::string       allowedMethods = "GET POST DELETE";
-    std::stringstream ss(allowedMethods);
-    std::string       substr;
-
-    while (ss >> substr)
+    // std::string       allowedMethods = "GET POST DELETE";
+    // std::stringstream ss(allowedMethods);
+    // std::string       substr;
+    //
+    // while (ss >> substr)
+    // {
+    //     if (substr == value)
+    //         return true;
+    // }
+    for (size_t i = 0; i < methods.size(); i++)
     {
-        if (substr == value)
+        if (!methods[i].empty() && methods[i] == value)
             return true;
     }
     return false;
@@ -49,7 +54,8 @@ int AllowedMethodsField::processValue(std::string value)
     methods.push_back(value.substr(start, end - start));
     for (size_t i = 0; i < methods.size(); i++)
     {
-        if (!validate(methods[i]))
+        if (!methods[i].empty() &&
+            allowedMethods.find(methods[i]) == std::string::npos)
             return 0;
     }
     return 1;

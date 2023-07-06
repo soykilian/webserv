@@ -21,6 +21,7 @@ class Request
     std::string getMethod() const;
     std::string getRoute() const;
     std::string getVersion() const;
+    std::string getHost() const;
 
     const Server &getServer() const;
 
@@ -33,6 +34,7 @@ class Request
     std::string                        method;
     std::string                        route;
     std::string                        version;
+    std::string                        host;
     int                                fd;
     int                                state;
     const Server                      &server;

@@ -42,16 +42,21 @@ std::string Request::getRoute() const { return this->route; }
 std::string Request::getVersion() const { return this->version; }
 
 const Server &Request::getServer() const { return this->server; }
-void Request::limitBody(){
-    std::map<std::string, std::string>::iterator iterator = this->headers.find("Content-Length");
+
+std::string Request::getHost() const { return this->host; }
+
+void Request::limitBody()
+{
+    std::map<std::string, std::string>::iterator iterator =
+        this->headers.find("Content-Length");
 
     if (iterator != this->headers.end())
     {
         int contentLength = std::stoi(iterator->second);
-        int clientSize = this->getServer().getClientBodySize();
-        int maxLength = std::min(contentLength, clientSize);
+        int clientSize    = this->getServer().getClientBodySize();
+        int maxLength     = std::min(contentLength, clientSize);
         if (static_cast<int>(this->body.length()) > maxLength)
-                this->body = this->body.substr(0, maxLength+1);
+            this->body = this->body.substr(0, maxLength + 1);
     }
 }
 
@@ -89,6 +94,8 @@ bool Request::read()
                 ss >> key >> value;
                 key.erase(key.end() - 1);
                 this->headers[key] = value;
+                if (key == "Host")
+                    this->host = value;
             }
             j = i;
         }

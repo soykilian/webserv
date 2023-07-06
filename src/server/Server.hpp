@@ -36,18 +36,22 @@ class Server
     std::string getFileEnd() const;
 
     bool isAllowedMethod(std::string method) const;
-    bool isAllowedMethodByPath(std::string method, std::string path) const;
+    bool isAllowedMethodByPath(std::string method, std::string host,
+                               std::string path) const;
 
     int  server_listen();
     void server_polling();
 
     std::vector<Location *> findLocationsByPath(std::string path) const;
-    std::string directoryListing(std::string responseFile, std::string route) const;
-    Location               *findLongestLocationByPath(std::string path) const;
+    std::string             directoryListing(std::string responseFile,
+                                             std::string route) const;
+    Location               *findLongestLocationByPath(std::string path,
+                                                      std::string host) const;
 
-    const Server &getServerByHost(std::string server_name);
+    const Server &getServerByHost(std::string server_name) const;
 
-    std::string getResponseFile(std::string route, short *flag) const;
+    std::string getResponseFile(std::string route, std::string host,
+                                short *flag) const;
 };
 
 std::ostream &operator<<(std::ostream &out, Server const &server);

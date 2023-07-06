@@ -6,7 +6,7 @@ Location::Location() : BaseField<std::string>()
 {
     this->fields["root"]             = new RootField();
     this->fields["index"]            = new IndexField();
-    this->fields["methods"]          = new AllowedMethodsField();
+    this->fields["allowed_methods"]  = new AllowedMethodsField();
     this->fields["post_folder"]      = new LoadFolderField();
     this->fields["client_body_size"] = new ClientBodySizeField();
     this->fields["error_page"]       = new ErrorPageField();
@@ -65,8 +65,9 @@ std::string Location::getErrorPage() const
 
 bool Location::isAllowedMethod(std::string method) const
 {
-    return (dynamic_cast<AllowedMethodsField *>(this->fields.at("methods"))
-                ->validate(method));
+    return (
+        dynamic_cast<AllowedMethodsField *>(this->fields.at("allowed_methods"))
+            ->validate(method));
 }
 
 std::ostream &operator<<(std::ostream &out, Location const &location)

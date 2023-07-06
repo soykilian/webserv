@@ -3,8 +3,8 @@
 #include <fstream>
 #include <string>
 #include <vector>
-# define READ_END 0
-# define WRITE_END 1
+#define READ_END  0
+#define WRITE_END 1
 Response::Response(Request *request)
     : request(request), server(request->getServer())
 {
@@ -77,13 +77,21 @@ std::string Response::getErrorPage(std::string code)
 
     return message;
 }
-bool Response::fileEdition(int flag)
+
+std::string Response::fileEdition(int flag)
 {
     std::ofstream          file;
     std::string            route;
-    std::string::size_type idx = this->request->getRoute().find_last_of('/');
-    route                      = this->server.getFileEnd() + "/" +
+    std::string            message;
+    std::string::size_type idx;
+
+    if (this->server.getFileEnd().empty())
+        return getErrorPage("404");
+
+    idx   = this->request->getRoute().find_last_of('/');
+    route = this->server.getFileEnd() + "/" +
             this->request->getRoute().substr(idx + 1);
+
     /*POST*/
     if (flag == 1)
     {
@@ -91,7 +99,7 @@ bool Response::fileEdition(int flag)
         if (!file.is_open())
         {
             std::cout << "Error opening file" << std::endl;
-            return false;
+            return getErrorPage("404");
         }
         file << this->request->getBody();
         file.close();
@@ -103,12 +111,15 @@ bool Response::fileEdition(int flag)
         if (result != 0)
         {
             std::cout << "Error deleting file" << std::endl;
-            return false;
+            return getErrorPage("404");
         }
         else
             std::cout << "File successfully deleted" << std::endl;
     }
-    return true;
+    message = "HTTP/1.1 201 No Content\r\n";
+    message += "Date: ";
+    message = addDate(message);
+    return message;
 }
 
 char **Response::set_env()
@@ -268,19 +279,21 @@ std::string Response::getResponse()
     short       flag = 0;
 
     // TODO ERROR PAGE 405
-    // if (!this->server.isAllowedMethodByPath(this->request->getMethod(),
-    //                                         this->request->getRoute()))
-    //     return getErrorPage("405");
+    if (!this->server.isAllowedMethodByPath(this->request->getMethod(),
+                                            this->request->getHost(),
+                                            this->request->getRoute()))
+        return getErrorPage("405");
 
     if (phpIndex != -1 && this->request->getRoute().at(phpIndex + 4) == 47)
         return processCgi();
 
     if (this->request->getMethod().compare("POST") == 0)
-        fileEdition(1);
+        return fileEdition(1);
     if (this->request->getMethod().compare("DELETE") == 0)
-        fileEdition(0);
-    std::string fileName =
-        this->server.getResponseFile(this->request->getRoute(), &flag);
+        return fileEdition(0);
+
+    std::string fileName = this->server.getResponseFile(
+        this->request->getRoute(), this->request->getHost(), &flag);
 
     if (flag == 1)
     {
@@ -296,10 +309,6 @@ std::string Response::getResponse()
         message += fileName;
         return message;
     }
-
-
-    // if (!this->server.isAllowedMethod(this->request->getMethod()))
-    //     return getErrorPage("405");
 
     // TODO ERROR PAGE 404
     if (fileName.empty())
