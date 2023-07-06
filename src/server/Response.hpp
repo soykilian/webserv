@@ -27,6 +27,7 @@ class Response
     std::string getErrorPage(std::string code);
     std::string   addDate(std::string message);
     std::string   get_cgi();
+    std::string   get_php();
     char **set_env();
 };
 

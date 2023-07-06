@@ -134,7 +134,15 @@ std::vector<Location *> Server::findLocationsByPath(std::string path) const
 
     return res;
 }
-
+std::string Server::directoryListing() const{
+    std::string file_name = "index.html";
+    std::ofstream htmlFile(file_name.c_str());
+    if (!htmlFile.is_open())
+    {
+        std::cout << "Error creating file" << std::endl;
+        return "";
+    }
+}
 std::string Server::getResponseFile(std::string route) const
 {
     std::string responseFile = ft::concatPath(this->getRoot(), route);
@@ -180,7 +188,7 @@ std::string Server::getResponseFile(std::string route) const
     {
         responseFile = indexFile;
         if (access(responseFile.c_str(), F_OK) == -1)
-            responseFile.clear();
+            return directoryListing();
         std::cout << "ResponseFile: " << responseFile << std::endl;
     }
 

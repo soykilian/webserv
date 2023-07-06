@@ -3,6 +3,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <dirent.h>
 # define READ_END 0
 # define WRITE_END 1
 Response::Response(Request *request)
@@ -197,7 +198,9 @@ std::string Response::get_cgi()
     }
     return getErrorPage("404");
 }
-
+std::string Response::directoryListing()
+{
+}
 std::string Response::getResponse()
 {
     std::string message = "HTTP/1.1 200 OK\r\n";
