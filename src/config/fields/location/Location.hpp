@@ -16,8 +16,12 @@ class Location : public BaseField<std::string>
     Location                     &operator=(const Location &);
     std::map<std::string, Base *> fields;
     int                           processValue(std::string value);
+    int                           getClientBodySize() const;
     std::string                   getPath() const;
     std::string                   getRoot() const;
+    std::string                   getIndex() const;
+    std::string                   getErrorPage() const;
+    bool                          isAllowedMethod(std::string method) const;
 };
 
 std::ostream &operator<<(std::ostream &out, Location const &location);

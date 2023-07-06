@@ -1,5 +1,5 @@
-#ifndef ALLOWD_METHODS_FIELD_HPP
-#define ALLOWD_METHODS_FIELD_HPP
+#ifndef ALLOWED_METHODS_FIELD_HPP
+#define ALLOWED_METHODS_FIELD_HPP
 
 #include <Base.hpp>
 #include <Utils.hpp>

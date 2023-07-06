@@ -6,6 +6,7 @@
 #include <iostream>
 #include <netinet/ip.h>
 #include <unistd.h>
+#include <dirent.h>
 #include <vector>
 
 Server::Server()
@@ -105,21 +106,51 @@ bool Server::isAllowedMethod(std::string method) const
                 ->validate(method));
 }
 
+bool Server::isAllowedMethodByPath(std::string method, std::string path) const
+{
+    Server const *current = this;
+    bool          res     = false;
+
+    while (current)
+    {
+        if (!current->isAllowedMethod(method))
+            return false;
+        if (!this->findLongestLocationByPath(path)->isAllowedMethod(method))
+            return false;
+        current = current->next;
+    }
+    return res;
+}
+
+const Server &Server::getServerByHost(std::string server_name)
+{
+    Server const *current = this;
+
+    while (current)
+    {
+        if (current->getServerName() == server_name)
+            return *current;
+        current = current->next;
+    }
+    return *this;
+}
+
 std::ostream &operator<<(std::ostream &out, Server const &server)
 {
     out << "Server: " << std::endl;
-    out << "Port: " << server.getPort() << std::endl;
-    out << " Host: " << server.getHost() << std::endl;
-    out << " ServerName: " << server.getServerName() << std::endl;
-    out << " Root: " << server.getRoot() << std::endl;
-    out << " ErrorPage: " << server.getErrorPage() << std::endl;
-    out << " ClientBodySize: " << server.getClientBodySize() << std::endl;
+    out << "\tPort: " << server.getPort() << std::endl;
+    out << "\t Host: " << server.getHost() << std::endl;
+    out << "\t ServerName: " << server.getServerName() << std::endl;
+    out << "\t Root: " << server.getRoot() << std::endl;
+    out << "\t ErrorPage: " << server.getErrorPage() << std::endl;
+    out << "\t ClientBodySize: " << server.getClientBodySize() << std::endl;
     out << std::endl;
     return (out);
 }
 std::string Server::getFileEnd() const
 {
-    return (dynamic_cast<LoadFolderField *>(this->fields.at("post_folder"))->getValue());
+    return (dynamic_cast<LoadFolderField *>(this->fields.at("post_folder"))
+                ->getValue());
 }
 
 std::vector<Location *> Server::findLocationsByPath(std::string path) const
@@ -134,21 +165,73 @@ std::vector<Location *> Server::findLocationsByPath(std::string path) const
 
     return res;
 }
-std::string Server::directoryListing() const{
-    std::string file_name = "index.html";
-    std::ofstream htmlFile(file_name.c_str());
-    if (!htmlFile.is_open())
+std::string Server::directoryListing(std::string responseFile, std::string route) const{
+    std::cout << "Directory listing" << std::endl;
+    std::string htmlFile;
+    htmlFile += "<!DOCTYPE html>\n";
+    htmlFile += "<head>\n";
+    htmlFile += "<title>Directory Listing</title>\n";
+    htmlFile += "</head>\n";
+    htmlFile += "<body>\n";
+    htmlFile += "<ul>\n";
+    DIR *dir;
+    struct dirent *ent;
+    if ((dir =opendir(responseFile.c_str())) != NULL)
     {
-        std::cout << "Error creating file" << std::endl;
+        while ((ent = readdir(dir)))
+        {
+            htmlFile += "<li>";
+            std::string dir_name(ent->d_name);
+            htmlFile += "<a href=\"" + ft::concatPath(route,dir_name)+  "\">" + dir_name + "</a><br>\n";
+            htmlFile += "</li>";
+        }
+        closedir(dir);
+    }
+    else
+    {
+        std::cout << "Error opening directory" << std::endl;
         return "";
     }
+    htmlFile +=  "</ul>\n";
+    htmlFile += "</body>\n";
+    htmlFile += "</html>\n";
+    return htmlFile;
 }
-std::string Server::getResponseFile(std::string route) const
+
+Location *Server::findLongestLocationByPath(std::string path) const
+{
+    Server   *curr            = const_cast<Server *>(this);
+    size_t    longestMatch    = 0;
+    Location *longestMatchLoc = NULL;
+
+    while (curr)
+    {
+        for (size_t i = 0; i < curr->locations.size(); i++)
+        {
+            if ((path.substr(0, curr->locations[i]->getValue().length()) ==
+                 curr->locations[i]->getValue()))
+            {
+                if (curr->locations[i]->getValue().length() > longestMatch)
+                {
+                    longestMatch    = curr->locations[i]->getValue().length();
+                    longestMatchLoc = curr->locations[i];
+                }
+            }
+        }
+        curr = curr->next;
+    }
+
+    return longestMatchLoc;
+}
+
+std::string Server::getResponseFile(std::string route, short *flag) const
 {
     std::string responseFile = ft::concatPath(this->getRoot(), route);
     std::string indexFile    = ft::concatPath(responseFile, this->getIndex());
 
 #ifdef DEBUG
+    std::cout << "******************DEBUG:**********************" << std::endl;
+
     for (size_t i = 0; i < this->locations.size(); i++)
     {
         std::cout << "******************LOCATIONS:**********************"
@@ -161,24 +244,28 @@ std::string Server::getResponseFile(std::string route) const
                   << std::endl;
     }
 
-    std::cout << "ResponseFile: " << responseFile << std::endl;
-
+    std::cout << "**************************************************"
+              << std::endl;
 #endif // DEBUG
     //
 
-    for (size_t i = 0; i < this->locations.size(); i++)
-    {
-        if ((route.substr(0, this->locations[i]->getValue().length()) ==
-             this->locations[i]->getValue()))
-        {
-            responseFile = ft::concatPath(
-                this->locations[i]->getRoot(),
-                ft::removeRootFromPath(this->locations[i]->getValue(), route));
-            if (access(responseFile.c_str(), F_OK) == -1)
-                responseFile.clear();
-        }
-    }
+    // Get the longest match for the location
+    Location *longestMatchLoc = NULL;
 
+    longestMatchLoc = this->findLongestLocationByPath(route);
+
+    if (longestMatchLoc)
+    {
+        if (longestMatchLoc->getRoot().length() > 0)
+            responseFile = ft::concatPath(
+                longestMatchLoc->getRoot(),
+                ft::removeRootFromPath(longestMatchLoc->getValue(), route));
+        if (access(responseFile.c_str(), F_OK) == -1)
+            responseFile.clear();
+        if (ft::isDirectory(responseFile))
+            indexFile =
+                ft::concatPath(responseFile, longestMatchLoc->getIndex());
+    }
     if (access(responseFile.c_str(), F_OK) == -1)
     {
         responseFile.clear();
@@ -186,10 +273,15 @@ std::string Server::getResponseFile(std::string route) const
     }
     if (ft::isDirectory(responseFile))
     {
+        std::string temp = responseFile;
         responseFile = indexFile;
-        if (access(responseFile.c_str(), F_OK) == -1)
-            return directoryListing();
+        if (temp == responseFile)
+        {
+            *flag = 1;
+            return directoryListing(responseFile, route);
+        }
         std::cout << "ResponseFile: " << responseFile << std::endl;
+            responseFile.clear();
     }
 
     return (responseFile);
