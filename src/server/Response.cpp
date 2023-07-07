@@ -108,6 +108,12 @@ std::string Response::fileEdition(int flag)
 
     std::cout << "POST OR DELETE route: " << route << std::endl;
 
+    route = ft::concatPath(server.getFileEnd(), this->request->getRoute());
+
+    if (access(route.c_str(), F_OK) == 1)
+    {
+        return getErrorPage("400");
+    }
     /*POST*/
     if (flag == 1)
     {
@@ -196,23 +202,16 @@ std::string Response::getPath()
     std::string::size_type end;
     std::string            path;
     std::string            route = this->php_path;
-    std::string            root  = this->server.getRoot();
     char                  *tmp   = getenv("PATH");
 
     if (!tmp)
-        return getErrorPage("404");
-
-    route = ft::concatPath(root, route);
-
+    {
+        std::cout << "Error getting environment variables" << std::endl;
+        return "";
+    }
     std::cout << "Route: " << route << std::endl;
-
-    if (access(route.c_str(), F_OK) == -1)
-        return getErrorPage("404");
-
     std::string env(tmp);
-
     end = env.find(":", start);
-
     while (end != std::string::npos)
     {
         path = env.substr(start, end - start);
@@ -229,12 +228,11 @@ std::string Response::get_cgi()
 {
 
     std::string path = this->getPath();
-
+    if (path.empty())
+        return getErrorPage("500");
     char *const args[] = {const_cast<char *>(path.c_str()),
                           const_cast<char *>(this->php_path.c_str()), NULL};
-    std::cout << path << std::endl;
-
-    int fd[2];
+    int         fd[2];
     pipe(fd);
     int pid = fork();
     if (pid == 0)
@@ -264,15 +262,21 @@ std::string Response::get_cgi()
 
 std::string Response::processCgi()
 {
-    std::string route       = this->request->getRoute();
-    int         index       = route.find(".php");
-    int         query_index = route.find("?");
+    std::string route =
+        ft::concatPath(this->server.getRoot(), this->request->getRoute());
+    int index       = route.find(".php");
+    int query_index = route.find("?");
 
-    if (route.length() != static_cast<size_t>(index) + 4)
+    // if (route.length() != static_cast<size_t>(index) + 4)
+    // {
+    //     std::cout << route.length() << " " << index << std::endl;
+    //     if (route.at(index + 4) != 47)
+    //         return getErrorPage("404");
+    //    }
+    if (access(route.c_str(), F_OK) == -1)
     {
-        std::cout << route.length() << " " << index << std::endl;
-        if (route.at(index + 4) != 47)
-            return getErrorPage("404");
+        std::cout << "Error opening file" << std::endl;
+        return getErrorPage("400");
     }
     this->query_params = "";
     if (query_index != -1)
@@ -283,6 +287,7 @@ std::string Response::processCgi()
     else
         this->cgi_path = route.substr(index + 4);
     this->php_path = route.substr(0, index + 4);
+    std::cout << "PHP file path: " << this->php_path << std::endl;
     return get_cgi();
 }
 
@@ -356,9 +361,11 @@ std::string Response::getResponse()
             return getErrorPage("405");
 
     // TODO: server by host
-    if (phpIndex != -1 && this->request->getRoute().at(phpIndex + 4) == 47)
-        return processCgi();
-
+    if (phpIndex != -1)
+        if ((int(this->request->getRoute().length()) > phpIndex + 4 &&
+             this->request->getRoute().at(phpIndex + 4) == 47) ||
+            (int(this->request->getRoute().length()) == phpIndex + 4))
+            return processCgi();
     // TODO: server by host
     if (this->request->getMethod().compare("POST") == 0)
         return fileEdition(1);
@@ -388,13 +395,11 @@ std::string Response::getResponse()
         return message;
     }
 
-    // TODO ERROR PAGE 404
     if (fileName.empty())
         return getErrorPage("404");
 
     std::ifstream file(fileName);
 
-    // TODO ERROR PAGE 404
     if (!file.is_open())
         return getErrorPage("404");
 
