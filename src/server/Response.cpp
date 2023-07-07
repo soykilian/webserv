@@ -52,10 +52,10 @@ std::string Response::getErrorPage(std::string code)
     {
         file.open(this->server.getErrorPage());
         if (!file.is_open())
-            file.open("./http/error.html");
+            file.open("./http/" + std::string(code)+ ".html");
     }
     else
-        file.open("./http/error.html");
+        file.open("./http/" + std::string(code)+ ".html");
 
     if (!file.is_open())
     {
@@ -282,7 +282,9 @@ std::string Response::getResponse()
     std::string body;
     std::string line;
     short       flag = 0;
-
+    if (this->request->getVersion().compare("HTTP/1.1") != 0 
+    || this->request->getVersion().compare("HTTP/1.0") != 0)
+        return getErrorPage("505");
     this->serversByHost =
         this->server.getServerByHost(this->request->getHost());
     if (!this->server.isAllowedMethodByPath(this->request, this))
