@@ -2,6 +2,7 @@
 #include <Response.hpp>
 #include <fstream>
 #include <string>
+#include <valarray>
 #include <vector>
 #define READ_END  0
 #define WRITE_END 1
@@ -275,6 +276,54 @@ std::string Response::processCgi()
     return get_cgi();
 }
 
+void Response::setLocationAndServer(std::string path)
+{
+    Server const                 *curr = &this->server;
+    std::valarray<Server const *> servers;
+    Location const               *longestMatchLoc  = NULL;
+    Server const                 *longestMatchServ = NULL;
+    size_t                        longestMatch     = 0;
+
+    if (this->getServersByHost().size() > 0)
+    {
+        for (size_t i = 0; i < this->getServersByHost().size(); i++)
+        {
+            for (size_t j = 0; j < servers[i]->locations.size(); j++)
+            {
+                if (servers[i]->locations[j]->getValue().length() >
+                    longestMatch)
+                {
+                    longestMatch =
+                        servers[i]->locations[j]->getValue().length();
+                    longestMatchLoc  = servers[i]->locations[j];
+                    longestMatchServ = servers[i];
+                }
+            }
+        }
+        this->currentServer   = longestMatchServ;
+        this->currentLocation = longestMatchLoc;
+        return;
+    }
+
+    while (curr)
+    {
+        for (size_t i = 0; i < curr->locations.size(); i++)
+        {
+            if ((path.substr(0, curr->locations[i]->getValue().length()) ==
+                 curr->locations[i]->getValue()))
+            {
+                if (curr->locations[i]->getValue().length() > longestMatch)
+                {
+                    longestMatch     = curr->locations[i]->getValue().length();
+                    longestMatchLoc  = curr->locations[i];
+                    longestMatchServ = curr;
+                }
+            }
+        }
+        curr = curr->next;
+    }
+}
+
 std::string Response::getResponse()
 {
     std::string message  = "HTTP/1.1 200 OK\r\n";
@@ -285,12 +334,14 @@ std::string Response::getResponse()
 
     this->serversByHost =
         this->server.getServerByHost(this->request->getHost());
+    setLocationAndServer(this->request->getRoute());
 
     // Check if the method is allowed
-    if (!this->server.isAllowedMethodByPath(this->request, this))
+    if (!this->currentServer->isAllowedMethod(request->getMethod()))
         return getErrorPage("405");
-
-    std::cout << "Method: " << this->request->getMethod() << std::endl;
+    if (this->currentLocation != NULL)
+        if (!this->currentLocation->isAllowedMethod(request->getMethod()))
+            return getErrorPage("405");
 
     // TODO: server by host
     if (phpIndex != -1 && this->request->getRoute().at(phpIndex + 4) == 47)
