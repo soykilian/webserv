@@ -50,10 +50,13 @@ std::string Response::getErrorPage(std::string code)
     std::string   body;
     std::string   line;
     std::ifstream file;
+    std::string   errPage = this->currentLocation != NULL
+                                ? (this->currentLocation->getErrorPage().empty()
+                                       ? this->currentServer->getErrorPage()
+                                       : this->currentLocation->getErrorPage())
+                                : this->currentServer->getErrorPage();
 
-    (void)code;
-
-    if (!this->server.getErrorPage().empty())
+    if (!errPage.empty())
     {
         file.open(this->server.getErrorPage());
         if (!file.is_open())
@@ -65,7 +68,10 @@ std::string Response::getErrorPage(std::string code)
     if (!file.is_open())
     {
         std::cout << "Error opening error page" << std::endl;
-        return "";
+        message = "HTTP/1.1 " + code + " Not Found\r\n";
+        message += "Date: ";
+        message = addDate(message);
+        return message;
     }
 
     while (std::getline(file, line))
@@ -147,8 +153,10 @@ char **Response::set_env()
     env["SERVER_PROTOCOL"]   = this->request->getVersion();
     env["SERVER_PORT"]       = this->server.getPort();
     env["PATH_INFO"]         = this->request->getRoute();
-    env["PATH_TRANSLATED"] =
-        ft::concatPath(this->server.getRoot(), env["PATH_INFO"]);
+    env["PATH_TRANSLATED"]   = ft::concatPath(
+        this->currentLocation != NULL ? this->currentLocation->getRoot()
+                                      : this->currentServer->getRoot(),
+        env["PATH_INFO"]);
     env["SCRIPT_NAME"]  = this->cgi_path;
     env["QUERY_STRING"] = this->query_params;
     env["REMOTE_ADDR"]  = this->request->getHeader("X-Forwarded-For");
@@ -175,19 +183,6 @@ char **Response::set_env()
         delete[] (*it);
     }
     return envArray;
-}
-
-std::vector<std::string> getEnvVector(char **env)
-{
-    std::vector<std::string> result;
-    int                      i = 0;
-
-    while (env[i])
-    {
-        result.push_back(env[i]);
-        i++;
-    }
-    return result;
 }
 
 std::string Response::getPath()
@@ -256,17 +251,13 @@ std::string Response::get_cgi()
 
 std::string Response::processCgi()
 {
-    std::string route =
-        ft::concatPath(this->server.getRoot(), this->request->getRoute());
+    std::string route = ft::concatPath(this->currentLocation != NULL
+                                           ? this->currentLocation->getRoot()
+                                           : this->currentServer->getRoot(),
+                                       this->request->getRoute());
     int index       = route.find(".php");
     int query_index = route.find("?");
 
-    // if (route.length() != static_cast<size_t>(index) + 4)
-    // {
-    //     std::cout << route.length() << " " << index << std::endl;
-    //     if (route.at(index + 4) != 47)
-    //         return getErrorPage("404");
-    //    }
     if (access(route.c_str(), F_OK) == -1)
     {
         std::cout << "Error opening file" << std::endl;
