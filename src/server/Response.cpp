@@ -90,34 +90,28 @@ std::vector<Server const *> Response::getServersByHost() const
 
 std::string Response::fileEdition(int flag)
 {
-    std::ofstream          file;
+    std::fstream           file;
     std::string            route;
     std::string            message;
     std::string            folder;
     std::string::size_type idx;
 
     if (!this->currentLocation->getFileEnd().empty())
-        folder = this->currentLocation->getFileEnd();
-    if (this->currentServer->getFileEnd().empty())
-        return getErrorPage("400");
-    else
-        folder = this->currentServer->getFileEnd();
+        folder = ft::concatPath(this->currentLocation->getRoot(),
+                                this->currentLocation->getFileEnd());
+    else if (this->currentServer->getFileEnd().empty())
+        return getErrorPage("600");
+    else if (folder.empty())
+        folder = ft::concatPath(this->currentServer->getRoot(), folder);
 
     idx   = this->request->getRoute().find_last_of('/');
     route = folder + "/" + this->request->getRoute().substr(idx + 1);
 
-    std::cout << "POST OR DELETE route: " << route << std::endl;
-
-    route = ft::concatPath(server.getFileEnd(), this->request->getRoute());
-
-    if (access(route.c_str(), F_OK) == 1)
-    {
-        return getErrorPage("400");
-    }
     /*POST*/
     if (flag == 1)
     {
-        file.open(route);
+        file.open(route,
+                  std::fstream::in | std::fstream::out | std::fstream::trunc);
         if (!file.is_open())
         {
             std::cout << "Error opening file" << std::endl;

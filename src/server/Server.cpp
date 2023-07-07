@@ -259,10 +259,6 @@ std::string Server::getResponseFile(Request *req, Response *res,
     Location const *loc    = res->getLocation();
     Server const   *server = res->getServer();
     std::string     route;
-    // std::string   host  = req->getHost();
-    //
-
-    (void)flag;
 
     if (loc)
     {
