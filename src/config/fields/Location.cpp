@@ -11,6 +11,7 @@ Location::Location() : BaseField<std::string>()
     this->fields["client_body_size"] = new ClientBodySizeField();
     this->fields["error_page"]       = new ErrorPageField();
     this->fields["post_folder"]      = new LoadFolderField();
+    this->fields["redirection"]      = new RedirectionField();
 }
 
 Location::~Location() {}
@@ -76,7 +77,10 @@ std::string Location::getFileEnd() const
     return (dynamic_cast<LoadFolderField *>(this->fields.at("post_folder"))
                 ->getValue());
 }
-
+RedirectionField* Location::getRedirection() const
+{
+    return (dynamic_cast<RedirectionField *>(this->fields.at("redirection")));
+}
 std::ostream &operator<<(std::ostream &out, Location const &location)
 {
     out << "Location path: " << location.getPath() << std::endl;
