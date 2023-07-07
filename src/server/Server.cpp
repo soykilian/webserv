@@ -104,6 +104,7 @@ int Server::getClientBodySize() const
 
 bool Server::isAllowedMethod(std::string method) const
 {
+    this->fields.at("allowed_methods")->isSet();
     return (
         dynamic_cast<AllowedMethodsField *>(this->fields.at("allowed_methods"))
             ->validate(method));
@@ -165,42 +166,6 @@ Location *findLongestLocationInVecto(std::vector<Server const *> server)
         }
     }
     return longestMatchLoc;
-}
-
-bool Server::isAllowedMethodByPath(Request *req, Response *res) const
-{
-    Server const *current = this;
-    std::string   path    = req->getRoute();
-    std::string   host    = req->getHost();
-    std::string   method  = req->getMethod();
-
-    if (res->getServersByHost().size() > 0)
-    {
-        for (size_t i = 0; i < res->getServersByHost().size(); i++)
-        {
-            if (!res->getServersByHost()[i]->isAllowedMethod(method))
-                return false;
-            if (!findLongestLocationInVecto(res->getServersByHost())
-                     ->isAllowedMethod(method))
-                return false;
-        }
-        return true;
-    }
-
-    // std::cout << "isAllowedMethodByPath: " << path << std::endl;
-
-    while (current)
-    {
-        if (!current->isAllowedMethod(method))
-            return false;
-        if (!this->findLongestLocationByPath(path)->isAllowedMethod(method))
-        {
-            std::cout << "isAllowedMethodByPath: " << path << std::endl;
-            return false;
-        }
-        current = current->next;
-    }
-    return true;
 }
 
 std::vector<const Server *>
@@ -289,48 +254,33 @@ std::string Server::directoryListing(std::string responseFile,
 std::string Server::getResponseFile(Request *req, Response *res,
                                     short *flag) const
 {
-    std::string   responseFile;
-    std::string   indexFile;
-    std::string   route = req->getRoute();
-    std::string   host  = req->getHost();
-    const Server *curr  = res->getServersByHost().size() == 0
-                              ? this
-                              : res->getServersByHost().at(0);
+    std::string     responseFile;
+    std::string     indexFile;
+    Location const *loc    = res->getLocation();
+    Server const   *server = res->getServer();
+    std::string     route;
+    // std::string   host  = req->getHost();
+    //
 
-#ifdef DEBUG
+    (void)flag;
 
-    std::cout << "Asking for Route: " << route << std::endl;
-    std::cout << "Asking for Host: " << host << std::endl;
-    std::cout << "Current Server: " << this->getServerByHost(host) << std::endl;
-    std::cout << "longestMatchLoc: "
-              << this->findLongestLocationByPath(route, host) << std::endl;
-#endif
-
-    responseFile = ft::concatPath(curr->getRoot(), route);
-    indexFile    = ft::concatPath(responseFile, curr->getIndex());
-
-    // Get the longest match for the location
-    Location *longestMatchLoc = NULL;
-
-    if (res->getServersByHost().size() == 0)
-        longestMatchLoc = this->findLongestLocationByPath(route);
-    else
-        longestMatchLoc = findLongestLocationInVecto(res->getServersByHost());
-
-    if (longestMatchLoc)
+    if (loc)
     {
-        if (longestMatchLoc->getRoot().length() > 0)
-            responseFile = ft::concatPath(
-                longestMatchLoc->getRoot(),
-                ft::removeRootFromPath(longestMatchLoc->getValue(), route));
-        else
-            responseFile = ft::concatPath(curr->getRoot(), route);
-        if (access(responseFile.c_str(), F_OK) == -1)
-            responseFile.clear();
-        if (ft::isDirectory(responseFile))
-            indexFile =
-                ft::concatPath(responseFile, longestMatchLoc->getIndex());
+        responseFile = ft::concatPath(
+            loc->getRoot(),
+            ft::removeRootFromPath(loc->getValue(), req->getRoute()));
+        indexFile = ft::concatPath(
+            responseFile,
+            ft::removeRootFromPath(loc->getValue(), loc->getIndex()));
+        route = ft::removeRootFromPath(loc->getValue(), req->getRoute());
     }
+    else
+    {
+        responseFile = ft::concatPath(server->getRoot(), req->getRoute());
+        indexFile    = ft::concatPath(responseFile, server->getIndex());
+        route        = req->getRoute();
+    }
+
     if (access(responseFile.c_str(), F_OK) == -1)
     {
         responseFile.clear();
@@ -346,6 +296,48 @@ std::string Server::getResponseFile(Request *req, Response *res,
             return directoryListing(responseFile, route);
         }
     }
+
+    // responseFile = ft::concatPath(curr->getRoot(), route);
+    // indexFile    = ft::concatPath(responseFile, curr->getIndex());
+    //
+    // // Get the longest match for the location
+    // Location *longestMatchLoc = NULL;
+    //
+    // if (res->getServersByHost().size() == 0)
+    //     longestMatchLoc = this->findLongestLocationByPath(route);
+    // else
+    //     longestMatchLoc =
+    //     findLongestLocationInVecto(res->getServersByHost());
+    //
+    // if (longestMatchLoc)
+    // {
+    //     if (longestMatchLoc->getRoot().length() > 0)
+    //         responseFile = ft::concatPath(
+    //             longestMatchLoc->getRoot(),
+    //             ft::removeRootFromPath(longestMatchLoc->getValue(), route));
+    //     else
+    //         responseFile = ft::concatPath(curr->getRoot(), route);
+    //     if (access(responseFile.c_str(), F_OK) == -1)
+    //         responseFile.clear();
+    //     if (ft::isDirectory(responseFile))
+    //         indexFile =
+    //             ft::concatPath(responseFile, longestMatchLoc->getIndex());
+    // }
+    // if (access(responseFile.c_str(), F_OK) == -1)
+    // {
+    //     responseFile.clear();
+    //     return (responseFile);
+    // }
+    // if (ft::isDirectory(responseFile))
+    // {
+    //     std::string temp = responseFile;
+    //     responseFile     = indexFile;
+    //     if (temp == responseFile)
+    //     {
+    //         *flag = 1;
+    //         return directoryListing(responseFile, route);
+    //     }
+    // }
 
     return (responseFile);
 }

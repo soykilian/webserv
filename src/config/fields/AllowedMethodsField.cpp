@@ -29,16 +29,10 @@ AllowedMethodsField::operator=(const AllowedMethodsField &other)
 
 bool AllowedMethodsField::validate(std::string value)
 {
-    std::cout << "Validating " << value << std::endl;
-    std::cout << "Methods: " << this->getValue() << std::endl;
     for (size_t i = 0; i < methods.size(); i++)
     {
         if (!methods[i].empty() && methods[i] == value)
-        {
-            std::cout << "Method " << value << " is allowed" << std::endl;
-            std::cout << "Method: " << methods[i] << std::endl;
             return true;
-        }
     }
     return false;
 }
@@ -60,11 +54,7 @@ int AllowedMethodsField::processValue(std::string value)
     {
         if (!methods[i].empty() &&
             allowedMethods.find(methods[i]) == std::string::npos)
-        {
-            std::cout << "Method " << methods[i] << " is not allowed"
-                      << std::endl;
             return 0;
-        }
     }
     this->setValue(value);
     return 1;

@@ -21,6 +21,7 @@ class Location : public BaseField<std::string>
     std::string                   getRoot() const;
     std::string                   getIndex() const;
     std::string                   getErrorPage() const;
+    std::string                   getFileEnd() const;
     bool                          isAllowedMethod(std::string method) const;
 };
 

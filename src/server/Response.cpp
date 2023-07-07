@@ -2,6 +2,7 @@
 #include <Response.hpp>
 #include <fstream>
 #include <string>
+#include <valarray>
 #include <vector>
 #define READ_END  0
 #define WRITE_END 1
@@ -24,6 +25,10 @@ Response::Response(const Response &other)
     : request(other.request), server(other.request->getServer())
 {
 }
+
+Server const *Response::getServer() const { return this->currentServer; }
+
+Location const *Response::getLocation() const { return this->currentLocation; }
 
 std::string Response::addDate(std::string message)
 {
@@ -88,12 +93,23 @@ std::string Response::fileEdition(int flag)
     std::ofstream          file;
     std::string            route;
     std::string            message;
-    std::cout << "traza" << std::endl;
-    if (this->server.getFileEnd().empty())
-        return getErrorPage("400");
+    std::string            folder;
+    std::string::size_type idx;
 
-    route = ft::concatPath(server.getFileEnd(),this->request->getRoute());
-    std::cout << "Route: " << route << std::endl;
+    if (!this->currentLocation->getFileEnd().empty())
+        folder = this->currentLocation->getFileEnd();
+    if (this->currentServer->getFileEnd().empty())
+        return getErrorPage("400");
+    else
+        folder = this->currentServer->getFileEnd();
+
+    idx   = this->request->getRoute().find_last_of('/');
+    route = folder + "/" + this->request->getRoute().substr(idx + 1);
+
+    std::cout << "POST OR DELETE route: " << route << std::endl;
+
+    route = ft::concatPath(server.getFileEnd(), this->request->getRoute());
+
     if (access(route.c_str(), F_OK) == 1)
     {
         return getErrorPage("400");
@@ -216,7 +232,7 @@ std::string Response::get_cgi()
         return getErrorPage("500");
     char *const args[] = {const_cast<char *>(path.c_str()),
                           const_cast<char *>(this->php_path.c_str()), NULL};
-    int fd[2];
+    int         fd[2];
     pipe(fd);
     int pid = fork();
     if (pid == 0)
@@ -246,17 +262,17 @@ std::string Response::get_cgi()
 
 std::string Response::processCgi()
 {
-    std::string route = ft::concatPath(this->server.getRoot(),this->request->getRoute());
-    int         index       = route.find(".php");
-    int         query_index = route.find("?");
-    
+    std::string route =
+        ft::concatPath(this->server.getRoot(), this->request->getRoute());
+    int index       = route.find(".php");
+    int query_index = route.find("?");
 
     // if (route.length() != static_cast<size_t>(index) + 4)
     // {
     //     std::cout << route.length() << " " << index << std::endl;
     //     if (route.at(index + 4) != 47)
     //         return getErrorPage("404");
-//    }
+    //    }
     if (access(route.c_str(), F_OK) == -1)
     {
         std::cout << "Error opening file" << std::endl;
@@ -275,6 +291,56 @@ std::string Response::processCgi()
     return get_cgi();
 }
 
+void Response::setLocationAndServer(std::string path)
+{
+    Server const                 *curr = &this->server;
+    std::valarray<Server const *> servers;
+    Location const               *longestMatchLoc  = NULL;
+    Server const                 *longestMatchServ = &this->server;
+    size_t                        longestMatch     = 0;
+
+    if (this->getServersByHost().size() > 0)
+    {
+        for (size_t i = 0; i < this->getServersByHost().size(); i++)
+        {
+            for (size_t j = 0; j < servers[i]->locations.size(); j++)
+            {
+                if (servers[i]->locations[j]->getValue().length() >
+                    longestMatch)
+                {
+                    longestMatch =
+                        servers[i]->locations[j]->getValue().length();
+                    longestMatchLoc  = servers[i]->locations[j];
+                    longestMatchServ = servers[i];
+                }
+            }
+        }
+        this->currentServer   = longestMatchServ;
+        this->currentLocation = longestMatchLoc;
+        return;
+    }
+
+    while (curr)
+    {
+        for (size_t i = 0; i < curr->locations.size(); i++)
+        {
+            if ((path.substr(0, curr->locations[i]->getValue().length()) ==
+                 curr->locations[i]->getValue()))
+            {
+                if (curr->locations[i]->getValue().length() > longestMatch)
+                {
+                    longestMatch     = curr->locations[i]->getValue().length();
+                    longestMatchLoc  = curr->locations[i];
+                    longestMatchServ = curr;
+                }
+            }
+        }
+        curr = curr->next;
+    }
+    this->currentServer   = longestMatchServ;
+    this->currentLocation = longestMatchLoc;
+}
+
 std::string Response::getResponse()
 {
     std::string message  = "HTTP/1.1 200 OK\r\n";
@@ -287,14 +353,21 @@ std::string Response::getResponse()
         return getErrorPage("505");
     this->serversByHost =
         this->server.getServerByHost(this->request->getHost());
-    if (!this->server.isAllowedMethodByPath(this->request, this))
+    setLocationAndServer(this->request->getRoute());
+
+    // Check if the method is allowed
+    if (!this->currentServer->isAllowedMethod(request->getMethod()))
         return getErrorPage("405");
+    if (this->currentLocation != NULL)
+        if (!this->currentLocation->isAllowedMethod(request->getMethod()))
+            return getErrorPage("405");
+
     // TODO: server by host
     if (phpIndex != -1)
-        if  ((int(this->request->getRoute().length()) > phpIndex+4
-        && this->request->getRoute().at(phpIndex + 4) == 47)
-        || (int(this->request->getRoute().length()) == phpIndex+4))
-        return processCgi();
+        if ((int(this->request->getRoute().length()) > phpIndex + 4 &&
+             this->request->getRoute().at(phpIndex + 4) == 47) ||
+            (int(this->request->getRoute().length()) == phpIndex + 4))
+            return processCgi();
     // TODO: server by host
     if (this->request->getMethod().compare("POST") == 0)
         return fileEdition(1);

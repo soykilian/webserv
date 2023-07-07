@@ -10,6 +10,7 @@ Location::Location() : BaseField<std::string>()
     this->fields["post_folder"]      = new LoadFolderField();
     this->fields["client_body_size"] = new ClientBodySizeField();
     this->fields["error_page"]       = new ErrorPageField();
+    this->fields["post_folder"]      = new LoadFolderField();
 }
 
 Location::~Location() {}
@@ -68,6 +69,12 @@ bool Location::isAllowedMethod(std::string method) const
     return (
         dynamic_cast<AllowedMethodsField *>(this->fields.at("allowed_methods"))
             ->validate(method));
+}
+
+std::string Location::getFileEnd() const
+{
+    return (dynamic_cast<LoadFolderField *>(this->fields.at("post_folder"))
+                ->getValue());
 }
 
 std::ostream &operator<<(std::ostream &out, Location const &location)
