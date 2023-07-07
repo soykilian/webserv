@@ -26,6 +26,10 @@ Response::Response(const Response &other)
 {
 }
 
+Server const *Response::getServer() const { return this->currentServer; }
+
+Location const *Response::getLocation() const { return this->currentLocation; }
+
 std::string Response::addDate(std::string message)
 {
     std::time_t              currentTime = std::time(nullptr);
@@ -89,14 +93,20 @@ std::string Response::fileEdition(int flag)
     std::ofstream          file;
     std::string            route;
     std::string            message;
+    std::string            folder;
     std::string::size_type idx;
 
-    if (this->server.getFileEnd().empty())
+    if (!this->currentLocation->getFileEnd().empty())
+        folder = this->currentLocation->getFileEnd();
+    if (this->currentServer->getFileEnd().empty())
         return getErrorPage("400");
+    else
+        folder = this->currentServer->getFileEnd();
 
     idx   = this->request->getRoute().find_last_of('/');
-    route = this->server.getFileEnd() + "/" +
-            this->request->getRoute().substr(idx + 1);
+    route = folder + "/" + this->request->getRoute().substr(idx + 1);
+
+    std::cout << "POST OR DELETE route: " << route << std::endl;
 
     /*POST*/
     if (flag == 1)
@@ -281,7 +291,7 @@ void Response::setLocationAndServer(std::string path)
     Server const                 *curr = &this->server;
     std::valarray<Server const *> servers;
     Location const               *longestMatchLoc  = NULL;
-    Server const                 *longestMatchServ = NULL;
+    Server const                 *longestMatchServ = &this->server;
     size_t                        longestMatch     = 0;
 
     if (this->getServersByHost().size() > 0)
@@ -322,6 +332,8 @@ void Response::setLocationAndServer(std::string path)
         }
         curr = curr->next;
     }
+    this->currentServer   = longestMatchServ;
+    this->currentLocation = longestMatchLoc;
 }
 
 std::string Response::getResponse()

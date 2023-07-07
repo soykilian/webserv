@@ -1,5 +1,6 @@
 #include "Request.hpp"
 #include <sys/socket.h>
+#include <vector>
 
 #define BUFFER_SIZE 4096
 
@@ -52,9 +53,7 @@ void Request::limitBody()
 
     if (iterator != this->headers.end())
     {
-        int contentLength = std::stoi(iterator->second);
-        int clientSize    = this->getServer().getClientBodySize();
-        int maxLength     = std::min(contentLength, clientSize);
+        int maxLength = std::stoi(iterator->second);
         if (static_cast<int>(this->body.length()) > maxLength)
             this->body = this->body.substr(0, maxLength + 1);
     }

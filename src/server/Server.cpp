@@ -104,6 +104,7 @@ int Server::getClientBodySize() const
 
 bool Server::isAllowedMethod(std::string method) const
 {
+    this->fields.at("allowed_methods")->isSet();
     return (
         dynamic_cast<AllowedMethodsField *>(this->fields.at("allowed_methods"))
             ->validate(method));
@@ -253,10 +254,48 @@ std::string Server::directoryListing(std::string responseFile,
 std::string Server::getResponseFile(Request *req, Response *res,
                                     short *flag) const
 {
-    std::string responseFile;
-    std::string indexFile;
-    // std::string   route = req->getRoute();
+    std::string     responseFile;
+    std::string     indexFile;
+    Location const *loc    = res->getLocation();
+    Server const   *server = res->getServer();
+    std::string     route;
     // std::string   host  = req->getHost();
+    //
+
+    (void)flag;
+
+    if (loc)
+    {
+        responseFile = ft::concatPath(
+            loc->getRoot(),
+            ft::removeRootFromPath(loc->getValue(), req->getRoute()));
+        indexFile = ft::concatPath(
+            responseFile,
+            ft::removeRootFromPath(loc->getValue(), loc->getIndex()));
+        route = ft::removeRootFromPath(loc->getValue(), req->getRoute());
+    }
+    else
+    {
+        responseFile = ft::concatPath(server->getRoot(), req->getRoute());
+        indexFile    = ft::concatPath(responseFile, server->getIndex());
+        route        = req->getRoute();
+    }
+
+    if (access(responseFile.c_str(), F_OK) == -1)
+    {
+        responseFile.clear();
+        return (responseFile);
+    }
+    if (ft::isDirectory(responseFile))
+    {
+        std::string temp = responseFile;
+        responseFile     = indexFile;
+        if (temp == responseFile)
+        {
+            *flag = 1;
+            return directoryListing(responseFile, route);
+        }
+    }
 
     // responseFile = ft::concatPath(curr->getRoot(), route);
     // indexFile    = ft::concatPath(responseFile, curr->getIndex());

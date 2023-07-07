@@ -20,6 +20,9 @@ class Response
     Server const               *getServerByLocation() const;
     void                        setLocationAndServer(std::string path);
 
+    Server const   *getServer() const;
+    Location const *getLocation() const;
+
   private:
     Request                    *request;
     const Server               &server;

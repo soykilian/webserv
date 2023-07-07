@@ -4,7 +4,7 @@ CC		= c++
 
 CONFIG_FILE = webserv.conf
 
-CFLAGS	= -Werror -Wextra -Wall -std=c++98 -pedantic -D CONFIG_FILE=\"$(CONFIG_FILE)\"
+CFLAGS	= -Werror -Wextra -Wall -std=c++98 -pedantic -D CONFIG_FILE=\"$(CONFIG_FILE)\" -fsanitize=address -g3
 
 SRCS_MAIN	= main.cpp
 
