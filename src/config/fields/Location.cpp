@@ -72,7 +72,17 @@ bool Location::isAllowedMethod(std::string method) const
 
 std::ostream &operator<<(std::ostream &out, Location const &location)
 {
-    out << "Location path: " << location.getPath()
-        << "Location Root Path: " << location.getRoot();
+    out << "Location path: " << location.getPath() << std::endl;
+    out << "\t\t\t Root: " << location.getRoot() << std::endl;
+    out << "\t\t\t Index: " << location.getIndex() << std::endl;
+    out << "\t\t\t Client body size: " << location.getClientBodySize()
+        << std::endl;
+    out << "\t\t\t Error page: " << location.getErrorPage() << std::endl;
+    out << "\t\t\t Allowed methods: "
+        << dynamic_cast<AllowedMethodsField *>(
+               location.fields.at("allowed_methods"))
+               ->getValue()
+        << std::endl;
+
     return out;
 }

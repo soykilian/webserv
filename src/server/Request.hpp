@@ -7,6 +7,7 @@
 #include <sstream>
 #include <string>
 
+class Server;
 class Request
 {
   public:

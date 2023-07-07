@@ -1,4 +1,6 @@
 #include "Server.hpp"
+#include "Request.hpp"
+#include "Response.hpp"
 #include <Fields.hpp>
 #include <Utils.hpp>
 #include <arpa/inet.h>
@@ -107,57 +109,6 @@ bool Server::isAllowedMethod(std::string method) const
             ->validate(method));
 }
 
-bool Server::isAllowedMethodByPath(std::string method, std::string host,
-                                   std::string path) const
-{
-    Server const *current = this;
-    bool          res     = true;
-
-    while (current)
-    {
-        if (!current->getHost().empty() && host != current->getHost())
-            continue;
-        if (!current->isAllowedMethod(method))
-            return false;
-        if (!this->findLongestLocationByPath(path, host)
-                 ->isAllowedMethod(method))
-            return false;
-        current = current->next;
-    }
-    return res;
-}
-
-const Server &Server::getServerByHost(std::string server_name) const
-{
-    Server const *current = this;
-
-    while (current)
-    {
-        if (current->getServerName() == server_name)
-            return *current;
-        current = current->next;
-    }
-    return *this;
-}
-
-std::ostream &operator<<(std::ostream &out, Server const &server)
-{
-    out << "Server: " << std::endl;
-    out << "\tPort: " << server.getPort() << std::endl;
-    out << "\t Host: " << server.getHost() << std::endl;
-    out << "\t ServerName: " << server.getServerName() << std::endl;
-    out << "\t Root: " << server.getRoot() << std::endl;
-    out << "\t ErrorPage: " << server.getErrorPage() << std::endl;
-    out << "\t ClientBodySize: " << server.getClientBodySize() << std::endl;
-    out << std::endl;
-    return (out);
-}
-std::string Server::getFileEnd() const
-{
-    return (dynamic_cast<LoadFolderField *>(this->fields.at("post_folder"))
-                ->getValue());
-}
-
 std::vector<Location *> Server::findLocationsByPath(std::string path) const
 {
     std::vector<Location *> res = std::vector<Location *>();
@@ -170,6 +121,135 @@ std::vector<Location *> Server::findLocationsByPath(std::string path) const
 
     return res;
 }
+
+Location *Server::findLongestLocationByPath(std::string path) const
+{
+    Server   *curr            = const_cast<Server *>(this);
+    size_t    longestMatch    = 0;
+    Location *longestMatchLoc = NULL;
+
+    while (curr)
+    {
+        for (size_t i = 0; i < curr->locations.size(); i++)
+        {
+            if ((path.substr(0, curr->locations[i]->getValue().length()) ==
+                 curr->locations[i]->getValue()))
+            {
+                if (curr->locations[i]->getValue().length() > longestMatch)
+                {
+                    longestMatch    = curr->locations[i]->getValue().length();
+                    longestMatchLoc = curr->locations[i];
+                }
+            }
+        }
+        curr = curr->next;
+    }
+
+    return longestMatchLoc;
+}
+
+Location *findLongestLocationInVecto(std::vector<Server const *> server)
+{
+    size_t    longestMatch    = 0;
+    Location *longestMatchLoc = NULL;
+
+    for (size_t i = 0; i < server.size(); i++)
+    {
+        for (size_t j = 0; j < server[i]->locations.size(); j++)
+        {
+            if (server[i]->locations[j]->getValue().length() > longestMatch)
+            {
+                longestMatch    = server[i]->locations[j]->getValue().length();
+                longestMatchLoc = server[i]->locations[j];
+            }
+        }
+    }
+    return longestMatchLoc;
+}
+
+bool Server::isAllowedMethodByPath(Request *req, Response *res) const
+{
+    Server const *current = this;
+    std::string   path    = req->getRoute();
+    std::string   host    = req->getHost();
+    std::string   method  = req->getMethod();
+
+    if (res->getServersByHost().size() > 0)
+    {
+        for (size_t i = 0; i < res->getServersByHost().size(); i++)
+        {
+            if (!res->getServersByHost()[i]->isAllowedMethod(method))
+                return false;
+            if (!findLongestLocationInVecto(res->getServersByHost())
+                     ->isAllowedMethod(method))
+                return false;
+        }
+        return true;
+    }
+
+    // std::cout << "isAllowedMethodByPath: " << path << std::endl;
+
+    while (current)
+    {
+        if (!current->isAllowedMethod(method))
+            return false;
+        if (!this->findLongestLocationByPath(path)->isAllowedMethod(method))
+        {
+            std::cout << "isAllowedMethodByPath: " << path << std::endl;
+            return false;
+        }
+        current = current->next;
+    }
+    return true;
+}
+
+std::vector<const Server *>
+Server::getServerByHost(std::string server_name) const
+{
+    Server const               *current = this;
+    std::vector<const Server *> res     = std::vector<const Server *>();
+
+    while (current)
+    {
+        if (current->getServerName() == server_name)
+            res.push_back(current);
+        current = current->next;
+    }
+    return res;
+}
+
+std::ostream &operator<<(std::ostream &out, Server const &server)
+{
+    out << "Server: " << std::endl;
+    out << "\t Port: " << server.getPort() << std::endl;
+    out << "\t Host: " << server.getHost() << std::endl;
+    out << "\t ServerName: " << server.getServerName() << std::endl;
+    out << "\t Root: " << server.getRoot() << std::endl;
+    out << "\t ErrorPage: " << server.getErrorPage() << std::endl;
+    out << "\t ClientBodySize: " << server.getClientBodySize() << std::endl;
+    out << "\t Index: " << server.getIndex() << std::endl;
+    out << "\t AllowedMethods: "
+        << dynamic_cast<AllowedMethodsField *>(
+               server.fields.at("allowed_methods"))
+               ->getValue()
+        << std::endl;
+    out << "\t PostFolder: "
+        << dynamic_cast<LoadFolderField *>(server.fields.at("post_folder"))
+               ->getValue()
+        << std::endl;
+    out << "\t Locations: " << std::endl;
+    for (size_t i = 0; i < server.locations.size(); i++)
+        out << "\t\t" << *server.locations[i] << std::endl;
+    out << std::endl;
+    return (out);
+}
+
+std::string Server::getFileEnd() const
+{
+    return (dynamic_cast<LoadFolderField *>(this->fields.at("post_folder"))
+                ->getValue());
+}
+
 std::string Server::directoryListing(std::string responseFile,
                                      std::string route) const
 {
@@ -206,49 +286,36 @@ std::string Server::directoryListing(std::string responseFile,
     return htmlFile;
 }
 
-Location *Server::findLongestLocationByPath(std::string path,
-                                            std::string host) const
-{
-    Server   *curr            = const_cast<Server *>(this);
-    size_t    longestMatch    = 0;
-    Location *longestMatchLoc = NULL;
-
-    while (curr)
-    {
-        if (!curr->getHost().empty() && host != curr->getHost())
-            continue;
-        for (size_t i = 0; i < curr->locations.size(); i++)
-        {
-            if ((path.substr(0, curr->locations[i]->getValue().length()) ==
-                 curr->locations[i]->getValue()))
-            {
-                if (curr->locations[i]->getValue().length() > longestMatch)
-                {
-                    longestMatch    = curr->locations[i]->getValue().length();
-                    longestMatchLoc = curr->locations[i];
-                }
-            }
-        }
-        curr = curr->next;
-    }
-
-    return longestMatchLoc;
-}
-
-std::string Server::getResponseFile(std::string route, std::string host,
+std::string Server::getResponseFile(Request *req, Response *res,
                                     short *flag) const
 {
     std::string   responseFile;
     std::string   indexFile;
-    const Server &curr = host.empty() ? *this : this->getServerByHost(host);
+    std::string   route = req->getRoute();
+    std::string   host  = req->getHost();
+    const Server *curr  = res->getServersByHost().size() == 0
+                              ? this
+                              : res->getServersByHost().at(0);
 
-    responseFile = ft::concatPath(curr.getRoot(), route);
-    indexFile    = ft::concatPath(responseFile, curr.getIndex());
+#ifdef DEBUG
+
+    std::cout << "Asking for Route: " << route << std::endl;
+    std::cout << "Asking for Host: " << host << std::endl;
+    std::cout << "Current Server: " << this->getServerByHost(host) << std::endl;
+    std::cout << "longestMatchLoc: "
+              << this->findLongestLocationByPath(route, host) << std::endl;
+#endif
+
+    responseFile = ft::concatPath(curr->getRoot(), route);
+    indexFile    = ft::concatPath(responseFile, curr->getIndex());
 
     // Get the longest match for the location
     Location *longestMatchLoc = NULL;
 
-    longestMatchLoc = this->findLongestLocationByPath(route, host);
+    if (res->getServersByHost().size() == 0)
+        longestMatchLoc = this->findLongestLocationByPath(route);
+    else
+        longestMatchLoc = findLongestLocationInVecto(res->getServersByHost());
 
     if (longestMatchLoc)
     {
@@ -256,6 +323,8 @@ std::string Server::getResponseFile(std::string route, std::string host,
             responseFile = ft::concatPath(
                 longestMatchLoc->getRoot(),
                 ft::removeRootFromPath(longestMatchLoc->getValue(), route));
+        else
+            responseFile = ft::concatPath(curr->getRoot(), route);
         if (access(responseFile.c_str(), F_OK) == -1)
             responseFile.clear();
         if (ft::isDirectory(responseFile))

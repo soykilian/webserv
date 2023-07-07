@@ -89,7 +89,11 @@ bool Config::callProcessLocationProperty()
 
     key = this->token;
     while (this->nextToken() && this->token != ";")
+    {
         value += this->token;
+        if (!this->endOfProprty)
+            value += ' ';
+    }
     if (this->token != ";")
     {
         std::cout << "Error: expected ;" << std::endl;
@@ -136,15 +140,17 @@ bool Config::processLocation()
             return false;
         }
         if (!this->callProcessLocationProperty())
+        {
+            std::cout << "Error: invalid value for " << this->token
+                      << std::endl;
             return false;
+        }
     }
     if (this->token != "}")
     {
         std::cout << "Error: expected }" << std::endl;
         return false;
     }
-    // ------------------- PRINT LOCATION -------------------
-    std::cout << *this->currentLocation << std::endl;
     this->currentServer->locations.push_back(this->currentLocation);
     return (true);
 }
@@ -236,7 +242,6 @@ void Config::loadConfig()
         }
         else if (state == UNKNOWN && this->token == "server")
         {
-            std::cout << "Parsing server block" << std::endl;
             state = SERVER;
             // Set the current server to the first server in the list
             // this->currentServer = this->servers.back();

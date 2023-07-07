@@ -66,7 +66,7 @@ std::string Response::getErrorPage(std::string code)
     while (std::getline(file, line))
         body += line;
 
-    message = "HTTP/1.1 404 Not Found\r\n";
+    message = "HTTP/1.1 " + code + " Not Found\r\n";
     message += "Content-Type: text/html\n";
     message += "Content-Length: ";
     message += std::to_string(body.length()) + "\n";
@@ -78,6 +78,11 @@ std::string Response::getErrorPage(std::string code)
     return message;
 }
 
+std::vector<Server const *> Response::getServersByHost() const
+{
+    return this->serversByHost;
+}
+
 std::string Response::fileEdition(int flag)
 {
     std::ofstream          file;
@@ -86,7 +91,7 @@ std::string Response::fileEdition(int flag)
     std::string::size_type idx;
 
     if (this->server.getFileEnd().empty())
-        return getErrorPage("404");
+        return getErrorPage("400");
 
     idx   = this->request->getRoute().find_last_of('/');
     route = this->server.getFileEnd() + "/" +
@@ -278,23 +283,33 @@ std::string Response::getResponse()
     std::string line;
     short       flag = 0;
 
-    // TODO ERROR PAGE 405
-    if (!this->server.isAllowedMethodByPath(this->request->getMethod(),
-                                            this->request->getHost(),
-                                            this->request->getRoute()))
+    this->serversByHost =
+        this->server.getServerByHost(this->request->getHost());
+
+    // Check if the method is allowed
+    if (!this->server.isAllowedMethodByPath(this->request, this))
         return getErrorPage("405");
 
+    std::cout << "Method: " << this->request->getMethod() << std::endl;
+
+    // TODO: server by host
     if (phpIndex != -1 && this->request->getRoute().at(phpIndex + 4) == 47)
         return processCgi();
 
+    // TODO: server by host
     if (this->request->getMethod().compare("POST") == 0)
         return fileEdition(1);
+    // TODO: server by host
     if (this->request->getMethod().compare("DELETE") == 0)
         return fileEdition(0);
+    if (this->request->getMethod().compare("GET") != 0)
+        return getErrorPage("405");
 
-    std::string fileName = this->server.getResponseFile(
-        this->request->getRoute(), this->request->getHost(), &flag);
+    // GET METHOD
+    std::string fileName =
+        this->server.getResponseFile(this->request, this, &flag);
 
+    // Flag for the directory listing
     if (flag == 1)
     {
         message += "Content-Type: ";

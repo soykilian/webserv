@@ -2,8 +2,10 @@
 #define RESPONSE_HPP
 
 #include <Request.hpp>
+#include <Server.hpp>
 #include <string>
 
+// class Request;
 class Response
 {
   public:
@@ -12,17 +14,19 @@ class Response
     ~Response();
     Response &operator=(const Response &other);
     Response(const Response &other);
-    std::string getResponse();
-    std::string fileEdition(int flag);
+    std::string                 getResponse();
+    std::string                 fileEdition(int flag);
+    std::vector<Server const *> getServersByHost() const;
 
   private:
-    Request                *request;
-    const Server           &server;
-    Server                  empty;
-    std::vector<Location *> locations;
-    std::string             cgi_path;
-    std::string             php_path;
-    std::string             query_params;
+    Request                    *request;
+    const Server               &server;
+    Server                      empty;
+    std::vector<Location *>     locations;
+    std::vector<Server const *> serversByHost;
+    std::string                 cgi_path;
+    std::string                 php_path;
+    std::string                 query_params;
 
     std::string getErrorPage(std::string code);
     std::string addDate(std::string message);

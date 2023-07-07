@@ -7,6 +7,8 @@
 #include <string>
 #include <vector>
 
+class Request;
+class Response;
 class Server
 {
   public:
@@ -36,8 +38,7 @@ class Server
     std::string getFileEnd() const;
 
     bool isAllowedMethod(std::string method) const;
-    bool isAllowedMethodByPath(std::string method, std::string host,
-                               std::string path) const;
+    bool isAllowedMethodByPath(Request *req, Response *res) const;
 
     int  server_listen();
     void server_polling();
@@ -45,14 +46,15 @@ class Server
     std::vector<Location *> findLocationsByPath(std::string path) const;
     std::string             directoryListing(std::string responseFile,
                                              std::string route) const;
-    Location               *findLongestLocationByPath(std::string path,
-                                                      std::string host) const;
+    Location               *findLongestLocationByPath(std::string path) const;
 
-    const Server &getServerByHost(std::string server_name) const;
+    std::vector<const Server *> getServerByHost(std::string server_name) const;
 
-    std::string getResponseFile(std::string route, std::string host,
-                                short *flag) const;
+    std::string getResponseFile(Request *req, Response *res, short *flag) const;
 };
+
+#include "Request.hpp"
+#include "Response.hpp"
 
 std::ostream &operator<<(std::ostream &out, Server const &server);
 
