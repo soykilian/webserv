@@ -6,6 +6,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <RedirectionField.hpp>
 
 class Location : public BaseField<std::string>
 {
@@ -22,6 +23,7 @@ class Location : public BaseField<std::string>
     std::string                   getIndex() const;
     std::string                   getErrorPage() const;
     std::string                   getFileEnd() const;
+    RedirectionField*                   getRedirection() const;
     bool                          isAllowedMethod(std::string method) const;
 };
 

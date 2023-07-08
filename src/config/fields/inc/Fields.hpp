@@ -11,5 +11,6 @@
 #include "./RootField.hpp"
 #include "./ServerNameField.hpp"
 #include "./LoadFolderField.hpp"
+#include "./RedirectionField.hpp"
 
 #endif // !FIELD_HPP

@@ -292,49 +292,6 @@ std::string Server::getResponseFile(Request *req, Response *res,
             return directoryListing(responseFile, route);
         }
     }
-
-    // responseFile = ft::concatPath(curr->getRoot(), route);
-    // indexFile    = ft::concatPath(responseFile, curr->getIndex());
-    //
-    // // Get the longest match for the location
-    // Location *longestMatchLoc = NULL;
-    //
-    // if (res->getServersByHost().size() == 0)
-    //     longestMatchLoc = this->findLongestLocationByPath(route);
-    // else
-    //     longestMatchLoc =
-    //     findLongestLocationInVecto(res->getServersByHost());
-    //
-    // if (longestMatchLoc)
-    // {
-    //     if (longestMatchLoc->getRoot().length() > 0)
-    //         responseFile = ft::concatPath(
-    //             longestMatchLoc->getRoot(),
-    //             ft::removeRootFromPath(longestMatchLoc->getValue(), route));
-    //     else
-    //         responseFile = ft::concatPath(curr->getRoot(), route);
-    //     if (access(responseFile.c_str(), F_OK) == -1)
-    //         responseFile.clear();
-    //     if (ft::isDirectory(responseFile))
-    //         indexFile =
-    //             ft::concatPath(responseFile, longestMatchLoc->getIndex());
-    // }
-    // if (access(responseFile.c_str(), F_OK) == -1)
-    // {
-    //     responseFile.clear();
-    //     return (responseFile);
-    // }
-    // if (ft::isDirectory(responseFile))
-    // {
-    //     std::string temp = responseFile;
-    //     responseFile     = indexFile;
-    //     if (temp == responseFile)
-    //     {
-    //         *flag = 1;
-    //         return directoryListing(responseFile, route);
-    //     }
-    // }
-
     return (responseFile);
 }
 

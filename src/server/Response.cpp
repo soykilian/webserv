@@ -60,10 +60,10 @@ std::string Response::getErrorPage(std::string code)
     {
         file.open(this->server.getErrorPage());
         if (!file.is_open())
-            file.open("./http/error.html");
+            file.open("./http/" + std::string(code)+ ".html");
     }
     else
-        file.open("./http/error.html");
+        file.open("./http/" + std::string(code)+ ".html");
 
     if (!file.is_open())
     {
@@ -333,11 +333,28 @@ std::string Response::getResponse()
     std::string body;
     std::string line;
     short       flag = 0;
-
+    if (this->request->getVersion().compare("HTTP/1.1") != 0 
+    && this->request->getVersion().compare("HTTP/1.0") != 0)
+    {
+        std::cout << "Invalid HTTP version" << std::endl;
+        return getErrorPage("505");
+    }
     this->serversByHost =
         this->server.getServerByHost(this->request->getHost());
     setLocationAndServer(this->request->getRoute());
-
+    if (this->currentLocation != NULL && !this->currentLocation->getRedirection()->getValue().empty())
+    {
+        RedirectionField *redirection = this->currentLocation->getRedirection();
+        std::string code = redirection->getCode();
+        std::string uri = redirection->getUri();
+        std::string red_message = redirection->getRedirectionMessage();
+        message = "HTTP/1.1 " + code + " " + red_message + "\n";
+        message += "Location: " + uri + "\r\n";
+        message += "Date: ";
+        message = addDate(message);
+        message += "\n\n";
+        return message;
+    }
     // Check if the method is allowed
     if (!this->currentServer->isAllowedMethod(request->getMethod()))
         return getErrorPage("405");
