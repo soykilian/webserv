@@ -13,5 +13,6 @@
 #include "./RedirectionField.hpp"
 #include "./RootField.hpp"
 #include "./ServerNameField.hpp"
+#include "./CGIField.hpp"
 
 #endif // !FIELD_HPP

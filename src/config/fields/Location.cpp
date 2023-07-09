@@ -12,7 +12,8 @@ Location::Location() : BaseField<std::string>()
     this->fields["error_page"]       = new ErrorPageField();
     this->fields["post_folder"]      = new LoadFolderField();
     this->fields["redirection"]      = new RedirectionField();
-    this->fields["autoindex"]        = new AutoindexField();
+    this->fields["autoindex"]		= new AutoindexField();
+	this->fields["cgi"]				= new CGIField();
 }
 
 Location::~Location() {}
@@ -76,6 +77,11 @@ std::string Location::getErrorPage() const
 bool Location::isAutoindexOn() const
 {
     return (dynamic_cast<AutoindexField *>(this->fields.at("autoindex"))
+                ->validate());
+}
+bool Location::isCGIOn() const
+{
+    return (dynamic_cast<CGIField *>(this->fields.at("cgi"))
                 ->validate());
 }
 

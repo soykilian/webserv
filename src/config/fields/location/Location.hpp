@@ -19,6 +19,7 @@ class Location : public BaseField<std::string>
     int                           processValue(std::string value);
     size_t                        getClientBodySize() const;
     bool                          isAutoindexOn() const;
+    bool                          isCGIOn() const;
     std::string                   getPath() const;
     std::string                   getRoot() const;
     std::string                   getIndex() const;

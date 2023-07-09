@@ -121,10 +121,12 @@ std::string Response::fileEdition(int flag)
     else if (this->currentServer->getFileEnd().empty())
         return getErrorPage("500");
     else if (folder.empty())
-        folder = ft::concatPath(this->currentServer->getRoot(), folder);
+        folder = ft::concatPath(this->currentServer->getRoot(), this->currentServer->getFileEnd());
 
     idx   = this->request->getRoute().find_last_of('/');
-    route = folder + "/" + this->request->getRoute().substr(idx + 1);
+    route = ft::concatPath(folder, this->request->getRoute().substr(idx + 1));
+
+    std::cout << "Route: " << route << std::endl;
 
     /*POST*/
     if (flag == 1)
@@ -264,6 +266,7 @@ std::string Response::get_cgi()
             std::cout << "Error executing CGI" << std::endl;
             return   getErrorPage("500");
         }
+        std::cout << "Captured output: -" << capturedOutput << "-" << std::endl;
         std::string message  = "HTTP/1.1 200 OK\r\n";
         message += "Content-Type: text/html\n";
         message += "Content-Length: ";
@@ -287,6 +290,7 @@ std::string Response::processCgi()
                                        this->request->getRoute());
     int index       = route.find(".php");
     int query_index = route.find("?");
+    std::cout << "Route: " << route << std::endl;
 
     if (access(route.c_str(), F_OK) == -1)
     {
@@ -355,19 +359,8 @@ void Response::setLocationAndServer(std::string path)
     this->currentServer   = longestMatchServ;
     this->currentLocation = longestMatchLoc;
 }
-
-std::string Response::getResponse()
+std::string Response::checkErrors()
 {
-    std::string message  = "HTTP/1.1 200 OK\r\n";
-    int         phpIndex = this->request->getRoute().find(".php");
-    std::string body;
-    std::string line;
-    short       flag = 0;
-
-#ifdef DEBUG
-    std::cout << "REQUEST: " << *(this->request) << std::endl;
-#endif // DEBUG
-
     // 01: Check the HTTP verion
     if (this->request->getVersion().compare("HTTP/1.1") != 0 &&
         this->request->getVersion().compare("HTTP/1.0") != 0)
@@ -400,25 +393,32 @@ std::string Response::getResponse()
     if (this->currentLocation != NULL)
         if (!this->currentLocation->isAllowedMethod(request->getMethod()))
             return getErrorPage("405");
+    return "";
+}
+std::string Response::getResponse()
+{
+    std::string message  = "HTTP/1.1 200 OK\r\n";
+    int         phpIndex = this->request->getRoute().find(".php");
+    std::string body;
+    std::string line;
+    short       flag = 0;
 
+#ifdef DEBUG
+    std::cout << "REQUEST: " << *(this->request) << std::endl;
+#endif // DEBUG
+    std::string messageError = checkErrors();
+    if (messageError.length() > 0)
+        return messageError;
     // 05: Check if redirection is set for this location
     if (this->currentLocation != NULL &&
         !this->currentLocation->getRedirection()->getValue().empty())
     {
         RedirectionField *redirection = this->currentLocation->getRedirection();
-        std::string       code        = redirection->getCode();
-        std::string       uri         = redirection->getUri();
-        std::string       red_message = redirection->getRedirectionMessage();
-        message = "HTTP/1.1 " + code + " " + red_message + "\n";
-        message += "Location: " + uri + "\r\n";
-        message += "Date: ";
-        message += addDate();
-        message += "\n\n";
-        return message;
+        return "HTTP/1.1 " + redirection->getCode() + " " + redirection->getRedirectionMessage()
+        + "\nLocation: " + redirection->getUri() + "\r\nDate: "+ addDate()+ "\n\n";
     }
-
     // 06: Process CGI if set
-    if (phpIndex != -1)
+    if (phpIndex != -1 && this->currentLocation->isCGIOn())
         if ((int(this->request->getRoute().length()) > phpIndex + 4 &&
              this->request->getRoute().at(phpIndex + 4) == 47) ||
             (int(this->request->getRoute().length()) == phpIndex + 4))
@@ -446,16 +446,8 @@ std::string Response::getResponse()
         }
         else if (this->currentServer->isAutoindexOn())
             return getErrorPage("403");
-        message += "Content-Type: ";
-        message += ft::getMimeType("index.html");
-        message += "\n";
-        message += "Content-Length: ";
-        message += std::to_string(fileName.length());
-        message += "\n";
-        message += "Date: ";
-        message += addDate();
-        message += "\n\n";
-        message += fileName;
+        message += "Content-Type: " + ft::getMimeType("index.html") + "\nContent-Length: "
+        + std::to_string(fileName.length()) + "\nDate: " + addDate() + "\n\n" + fileName;
         return message;
     }
     std::cout << "File name: " << fileName << std::endl;
@@ -470,16 +462,8 @@ std::string Response::getResponse()
     while (std::getline(file, line))
         body += line;
 
-    message += "Content-Type: ";
-    message += ft::getMimeType(fileName);
-    message += "\n";
-    message += "Content-Length: ";
-    message += std::to_string(body.length());
-    message += "\n";
-    message += "Date: ";
-    message += addDate();
-    message += "\n\n";
-    message += body;
+    message += "Content-Type: " +ft::getMimeType(fileName) +"\nContent-Length: "
+    + std::to_string(body.length())+ "\nDate: "+ addDate()+ "\n\n"+ body;
 #ifdef DEBUG
     std::cout << "*** RESPONSE ***" << std::endl;
     std::cout << message << std::endl;
