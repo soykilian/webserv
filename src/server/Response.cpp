@@ -149,10 +149,14 @@ char **Response::set_env()
     std::map<std::string, std::string> env;
     env["SERVER_SOFTWARE"]   = "";
     env["SERVER_NAME"]       = this->server.getHost();
+    env["REQUEST_METHOD"]    = this->request->getMethod();
+    env["REQUEST_URI"]       = this->request->getRoute();
+    env["PATH_TRANSLATED"]   = this->request->getRoute();
+    env["PATH_INFO"]         = this->request->getRoute();
     env["GATEWAY_INTERFACE"] = "CGI/version";
     env["SERVER_PROTOCOL"]   = this->request->getVersion();
+    env["REDIRECT_STATUS"]   = "200";
     env["SERVER_PORT"]       = this->server.getPort();
-    env["PATH_INFO"]         = this->request->getRoute();
     env["PATH_TRANSLATED"]   = ft::concatPath(
         this->currentLocation != NULL ? this->currentLocation->getRoot()
                                       : this->currentServer->getRoot(),
