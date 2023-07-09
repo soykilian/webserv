@@ -308,15 +308,15 @@ std::string Response::processCgi()
 
 void Response::setLocationAndServer(std::string path)
 {
-    Server const                 *curr = &this->server;
-    std::valarray<Server const *> servers;
-    Location const               *longestMatchLoc  = NULL;
-    Server const                 *longestMatchServ = &this->server;
-    size_t                        longestMatch     = 0;
+    Server const               *curr             = &this->server;
+    std::vector<Server const *> servers          = this->getServersByHost();
+    Location const             *longestMatchLoc  = NULL;
+    Server const               *longestMatchServ = &this->server;
+    size_t                      longestMatch     = 0;
 
-    if (this->getServersByHost().size() > 0)
+    if (servers.size() > 0)
     {
-        for (size_t i = 0; i < this->getServersByHost().size(); i++)
+        for (size_t i = 0; i < servers.size(); i++)
         {
             for (size_t j = 0; j < servers[i]->locations.size(); j++)
             {
