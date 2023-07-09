@@ -30,13 +30,14 @@ Server const *Response::getServer() const { return this->currentServer; }
 
 Location const *Response::getLocation() const { return this->currentLocation; }
 
-std::string Response::addDate(std::string message)
+std::string Response::addDate()
 {
     std::time_t              currentTime = std::time(nullptr);
     std::string              stringTime  = std::ctime(&currentTime);
     std::stringstream        ss(stringTime);
     std::string              token;
     std::vector<std::string> tokens;
+    std::string              message;
     while (ss >> token)
         tokens.push_back(token);
     message += tokens[0] + ", " + tokens[2] + " " + tokens[1] + " " +
@@ -50,6 +51,7 @@ std::string Response::getErrorPage(std::string code)
     std::string   body;
     std::string   line;
     std::ifstream file;
+    std::map<std::string, std::string> errorMessages;
     std::string   errPage = this->currentLocation != NULL
                                 ? (this->currentLocation->getErrorPage().empty()
                                        ? this->currentServer->getErrorPage()
@@ -64,25 +66,36 @@ std::string Response::getErrorPage(std::string code)
     }
     else
         file.open("./http/" + std::string(code) + ".html");
-
+    errorMessages["400"] = "Bad Request";
+    errorMessages["403"] = "Forbidden";
+    errorMessages["404"] = "Not Found";
+    errorMessages["405"] = "Method Not Allowed";
+    errorMessages["408"] = "Request Timeout";
+    errorMessages["413"] = "Payload Too Large";
+    errorMessages["500"] = "Internal Server Error";
+    errorMessages["505"] = "HTTP Version Not Supported";
+    std::map<std::string, std::string>::iterator it = errorMessages.find(code);
+    if (it == errorMessages.end())
+        getErrorPage("500");
     if (!file.is_open())
     {
-        std::cout << "Error opening error page" << std::endl;
-        message = "HTTP/1.1 " + code + " Not Found\r\n";
+        message = "HTTP/1.1 500 Internal Server Error\r\n";
+        message += "Content-Type: text/html\n";
+        message += "Content-Length: ";
+        message += std::to_string(body.length()) + "\n";
         message += "Date: ";
-        message = addDate(message);
-        return message;
+        message += addDate();
+        message += "\n\n";
     }
-
     while (std::getline(file, line))
         body += line;
 
-    message = "HTTP/1.1 " + code + " Not Found\r\n";
+    message = "HTTP/1.1 " + code +" " + it->second +"\r\n";
     message += "Content-Type: text/html\n";
     message += "Content-Length: ";
     message += std::to_string(body.length()) + "\n";
     message += "Date: ";
-    message = addDate(message);
+    message += addDate();
     message += "\n\n";
     message += body;
 
@@ -106,7 +119,7 @@ std::string Response::fileEdition(int flag)
         folder = ft::concatPath(this->currentLocation->getRoot(),
                                 this->currentLocation->getFileEnd());
     else if (this->currentServer->getFileEnd().empty())
-        return getErrorPage("600");
+        return getErrorPage("500");
     else if (folder.empty())
         folder = ft::concatPath(this->currentServer->getRoot(), folder);
 
@@ -140,7 +153,7 @@ std::string Response::fileEdition(int flag)
     }
     message = "HTTP/1.1 201 No Content\r\n";
     message += "Date: ";
-    message = addDate(message);
+    message += addDate();
     return message;
 }
 
@@ -243,8 +256,25 @@ std::string Response::get_cgi()
         ssize_t     bytesRead;
         while ((bytesRead = read(fd[READ_END], buffer, sizeof(buffer))) > 0)
             capturedOutput.append(buffer, bytesRead);
+        int status;
+        waitpid(pid, &status, 0);
         close(fd[READ_END]);
-        return capturedOutput;
+        if (status != 0)
+        {
+            std::cout << "Error executing CGI" << std::endl;
+            return   getErrorPage("500");
+        }
+        std::string message  = "HTTP/1.1 200 OK\r\n";
+        message += "Content-Type: text/html\n";
+        message += "Content-Length: ";
+        message += std::to_string(capturedOutput.length());
+        message += "\n";
+        message += "Date: ";
+        message += addDate();
+        message += "\n\n";
+        message += capturedOutput;
+        std::cout << "Message: " << message << std::endl;
+        return message;
     }
     return getErrorPage("404");
 }
@@ -382,7 +412,7 @@ std::string Response::getResponse()
         message = "HTTP/1.1 " + code + " " + red_message + "\n";
         message += "Location: " + uri + "\r\n";
         message += "Date: ";
-        message = addDate(message);
+        message += addDate();
         message += "\n\n";
         return message;
     }
@@ -423,12 +453,12 @@ std::string Response::getResponse()
         message += std::to_string(fileName.length());
         message += "\n";
         message += "Date: ";
-        message = addDate(message);
+        message += addDate();
         message += "\n\n";
         message += fileName;
         return message;
     }
-
+    std::cout << "File name: " << fileName << std::endl;
     if (fileName.empty())
         return getErrorPage("404");
 
@@ -447,7 +477,7 @@ std::string Response::getResponse()
     message += std::to_string(body.length());
     message += "\n";
     message += "Date: ";
-    message = addDate(message);
+    message += addDate();
     message += "\n\n";
     message += body;
 #ifdef DEBUG

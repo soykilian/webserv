@@ -45,6 +45,7 @@ bool Cluster::start()
             perror("poll");
             exit(1);
         }
+
         for (size_t i = 0; i < pfds.size(); i++)
         {
             if (pfds[i].revents & POLLIN)

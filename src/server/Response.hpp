@@ -36,7 +36,7 @@ class Response
     std::string                 query_params;
 
     std::string getErrorPage(std::string code);
-    std::string addDate(std::string message);
+    std::string addDate();
     std::string getPath();
     std::string get_cgi();
     std::string processCgi();
