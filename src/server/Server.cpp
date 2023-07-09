@@ -1,4 +1,5 @@
 #include "Server.hpp"
+#include "AutoindexField.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
 #include <Fields.hpp>
@@ -22,6 +23,7 @@ Server::Server()
     this->fields["index"]            = new IndexField();
     this->fields["allowed_methods"]  = new AllowedMethodsField();
     this->fields["post_folder"]      = new LoadFolderField();
+    this->fields["autoindex"]        = new AutoindexField();
     this->next                       = NULL;
 }
 
@@ -186,10 +188,21 @@ Server::getServerByHost(std::string server_name) const
 {
     Server const               *current = this;
     std::vector<const Server *> res     = std::vector<const Server *>();
+    std::string                 host;
+    std::string                 port;
+    // Split server_name by ':'
+    if (server_name.find(':') != std::string::npos)
+    {
+        host = server_name.substr(0, server_name.find(':'));
+        port = server_name.substr(server_name.find(':') + 1);
+    }
+    else
+        return res;
 
     while (current)
     {
-        if (current->getServerName() == server_name)
+        if (current->getServerName() == host &&
+            current->getPort() == std::stoi(port))
             res.push_back(current);
         current = current->next;
     }
@@ -215,6 +228,7 @@ std::ostream &operator<<(std::ostream &out, Server const &server)
         << dynamic_cast<LoadFolderField *>(server.fields.at("post_folder"))
                ->getValue()
         << std::endl;
+    out << "\t Autoindex: " << server.isAutoindexOn() << std::endl;
     out << "\t Locations: " << std::endl;
     for (size_t i = 0; i < server.locations.size(); i++)
         out << "\t\t" << *server.locations[i] << std::endl;

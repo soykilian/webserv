@@ -100,6 +100,7 @@ std::ostream &operator<<(std::ostream &out, Location const &location)
     out << "Location path: " << location.getPath() << std::endl;
     out << "\t\t\t Root: " << location.getRoot() << std::endl;
     out << "\t\t\t Index: " << location.getIndex() << std::endl;
+    out << "\t\t\t Autoindex: " << location.isAutoindexOn() << std::endl;
     out << "\t\t\t Client body size: " << location.getClientBodySize()
         << std::endl;
     out << "\t\t\t Error page: " << location.getErrorPage() << std::endl;

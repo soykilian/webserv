@@ -1,6 +1,10 @@
 #include "inc/ClientBodySizeField.hpp"
 
-ClientBodySizeField::ClientBodySizeField() : BaseField<size_t>() {}
+ClientBodySizeField::ClientBodySizeField() : BaseField<size_t>()
+{
+    this->setValue(-1);
+    this->setIsSet(false);
+}
 
 ClientBodySizeField::ClientBodySizeField(size_t val) : BaseField<size_t>(val) {}
 
