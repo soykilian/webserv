@@ -1,17 +1,6 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>PHP Example</title>
-</head>
-<body>
-    <h1>Welcome to PHP!</h1>
+<?php
+header("HTTP/1.1 404 Not Found");
+header("Content-Type: application/json");
 
-    <?php
-        // PHP code goes here
-        $name = "John Doe";
-        $age = 25;
-
-        echo "My name is " . $name . " and I am " . $age . " years old.";
-    ?>
-</body>
-</html>
+echo "404 Not Found - Page not found.";
+?>

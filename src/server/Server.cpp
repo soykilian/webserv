@@ -296,6 +296,7 @@ std::string Server::getResponseFile(Request *req, Response *res,
             responseFile,
             ft::removeRootFromPath(loc->getValue(), loc->getIndex()));
         route = ft::removeRootFromPath(loc->getValue(), req->getRoute());
+        std::cout << "route: " << responseFile << std::endl;
     }
     else
     {

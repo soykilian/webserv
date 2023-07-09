@@ -1,16 +1,10 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>PHP Example</title>
-<body>
-    <h1>Welcome to PHP!</h1>
+<?php
+header("Content-Type: text/html; charset=UTF-8");
 
-    <?php
-        // PHP code goes here
-        $name = "John Doe";
-        $age = 25;
-
-        echo "My name is " . $name . " and I am " . $age . " years old.";
-    ?>
-</body>
-</html>
+echo "<html>";
+echo "<head><title>My PHP Page</title></head>";
+echo "<body>";
+echo "<h1>Hello, world!</h1>";
+echo "</body>";
+echo "</html>";
+?>

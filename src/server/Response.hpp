@@ -40,6 +40,7 @@ class Response
     std::string getPath();
     std::string get_cgi();
     std::string processCgi();
+    std::string checkErrors();
     char      **set_env();
 };
 
