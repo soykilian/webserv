@@ -47,16 +47,16 @@ std::string Response::addDate()
 
 std::string Response::getErrorPage(std::string code)
 {
-    std::string   message;
-    std::string   body;
-    std::string   line;
-    std::ifstream file;
+    std::string                        message;
+    std::string                        body;
+    std::string                        line;
+    std::ifstream                      file;
     std::map<std::string, std::string> errorMessages;
-    std::string   errPage = this->currentLocation != NULL
-                                ? (this->currentLocation->getErrorPage().empty()
-                                       ? this->currentServer->getErrorPage()
-                                       : this->currentLocation->getErrorPage())
-                                : this->currentServer->getErrorPage();
+    std::string                        errPage = this->currentLocation != NULL
+                                                     ? (this->currentLocation->getErrorPage().empty()
+                                                            ? this->currentServer->getErrorPage()
+                                                            : this->currentLocation->getErrorPage())
+                                                     : this->currentServer->getErrorPage();
 
     if (!errPage.empty())
     {
@@ -90,7 +90,7 @@ std::string Response::getErrorPage(std::string code)
     while (std::getline(file, line))
         body += line;
 
-    message = "HTTP/1.1 " + code +" " + it->second +"\r\n";
+    message = "HTTP/1.1 " + code + " " + it->second + "\r\n";
     message += "Content-Type: text/html\n";
     message += "Content-Length: ";
     message += std::to_string(body.length()) + "\n";
@@ -136,6 +136,7 @@ std::string Response::fileEdition(int flag)
             std::cout << "Error opening file" << std::endl;
             return getErrorPage("404");
         }
+        std::cout << "File successfully opened" << std::endl;
         file << this->request->getBody();
         file.close();
     }
@@ -262,9 +263,9 @@ std::string Response::get_cgi()
         if (status != 0)
         {
             std::cout << "Error executing CGI" << std::endl;
-            return   getErrorPage("500");
+            return getErrorPage("500");
         }
-        std::string message  = "HTTP/1.1 200 OK\r\n";
+        std::string message = "HTTP/1.1 200 OK\r\n";
         message += "Content-Type: text/html\n";
         message += "Content-Length: ";
         message += std::to_string(capturedOutput.length());
@@ -287,6 +288,11 @@ std::string Response::processCgi()
                                        this->request->getRoute());
     int index       = route.find(".php");
     int query_index = route.find("?");
+
+    std::cout << "Route: " << route << std::endl;
+    std::cout << "Location root: " << this->currentLocation->getRoot()
+              << std::endl;
+    std::cout << "Server root: " << this->currentServer->getRoot() << std::endl;
 
     if (access(route.c_str(), F_OK) == -1)
     {
@@ -384,14 +390,12 @@ std::string Response::getResponse()
     // 03: Check if the body size is allowed
     if (this->currentLocation)
     {
-        if (this->currentLocation->isClientBodySizeSet() &&
-            this->currentLocation->getClientBodySize() <
-                this->request->getBody().size())
+        if (this->currentLocation->getClientBodySize() <
+            this->request->getBody().size())
             return getErrorPage("413");
     }
-    else if (this->currentServer->isClientBodySizeSet() &&
-             this->request->getBody().size() >
-                 this->currentServer->getClientBodySize())
+    else if (this->request->getBody().size() >
+             this->currentServer->getClientBodySize())
         return getErrorPage("413");
 
     // 04: Check if the method is allowed

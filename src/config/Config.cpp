@@ -60,7 +60,10 @@ bool Config::processSavedPaths()
     std::string                                  root;
 
     if (!this->currentServer->fields["root"]->isSet())
+    {
         this->currentServer->fields["root"]->processValue("/");
+        this->currentServer->fields["root"]->setIsSet(false);
+    }
 
     root = this->currentServer->fields["root"]->getRoot();
     it   = this->pendingPaths.begin();
