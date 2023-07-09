@@ -39,6 +39,7 @@ class Server
 
     bool isAllowedMethod(std::string method) const;
     bool isAllowedMethodByPath(Request *req, Response *res) const;
+    bool isAutoindexOn() const;
     bool isClientBodySizeSet() const;
 
     int  server_listen();

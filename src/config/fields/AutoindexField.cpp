@@ -1,8 +1,14 @@
 #include "inc/AutoindexField.hpp"
 
-AutoindexField::AutoindexField(std::string val) : BaseField<std::string>(val) {}
+AutoindexField::AutoindexField(std::string val) : BaseField<std::string>(val)
+{
+    this->processValue(val);
+}
 
-AutoindexField::AutoindexField() : BaseField<std::string>() {}
+AutoindexField::AutoindexField() : BaseField<std::string>()
+{
+    this->setValue("off");
+}
 
 AutoindexField::~AutoindexField() {}
 
@@ -26,10 +32,11 @@ bool AutoindexField::validate()
 
 int AutoindexField::processValue(std::string value)
 {
+    std::cout << "AutoindexField::processValue: -" << value << "-" << std::endl;
     if (value == "on" || value == "off")
     {
         this->setValue(value);
-        return 0;
+        return 1;
     }
-    return 1;
+    return 0;
 }

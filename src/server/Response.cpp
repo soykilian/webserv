@@ -409,6 +409,13 @@ std::string Response::getResponse()
     // Flag for the directory listing
     if (flag == 1)
     {
+        if (this->currentLocation != NULL)
+        {
+            if (!this->currentLocation->isAutoindexOn())
+                return getErrorPage("403");
+        }
+        else if (this->currentServer->isAutoindexOn())
+            return getErrorPage("403");
         message += "Content-Type: ";
         message += ft::getMimeType("index.html");
         message += "\n";

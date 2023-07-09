@@ -18,6 +18,7 @@ SRCS_FIELDS	= AllowedMethodsField.cpp Base.cpp ClientBodySizeField.cpp \
 			  IndexField.cpp Location.cpp ServerNameField.cpp \
 			  ErrorPageField.cpp ListenField.cpp RootField.cpp \
 			  LoadFolderField.cpp RedirectionField.cpp \
+				AutoindexField.cpp			  
 
 
 SRCS		= ${SRCS_MAIN} \

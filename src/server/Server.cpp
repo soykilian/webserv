@@ -117,6 +117,12 @@ bool Server::isAllowedMethod(std::string method) const
             ->validate(method));
 }
 
+bool Server::isAutoindexOn() const
+{
+    return (dynamic_cast<AutoindexField *>(this->fields.at("autoindex"))
+                ->validate());
+}
+
 std::vector<Location *> Server::findLocationsByPath(std::string path) const
 {
     std::vector<Location *> res = std::vector<Location *>();
