@@ -24,9 +24,11 @@ class Request
     std::string getVersion() const;
     std::string getHost() const;
 
+    int getState() const;
+
     const Server &getServer() const;
 
-    bool read();
+    int read();
 
   private:
     std::string                        bufferLeft;
@@ -42,5 +44,7 @@ class Request
     Server                             empty;
     void                               limitBody();
 };
+
+std::ostream &operator<<(std::ostream &out, Request const &req);
 
 #endif // !REQUEST_HPP

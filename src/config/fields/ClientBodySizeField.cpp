@@ -1,8 +1,8 @@
 #include "inc/ClientBodySizeField.hpp"
 
-ClientBodySizeField::ClientBodySizeField() : BaseField<int>() {}
+ClientBodySizeField::ClientBodySizeField() : BaseField<size_t>() {}
 
-ClientBodySizeField::ClientBodySizeField(int val) : BaseField<int>(val) {}
+ClientBodySizeField::ClientBodySizeField(size_t val) : BaseField<size_t>(val) {}
 
 ClientBodySizeField::~ClientBodySizeField() {}
 
@@ -25,6 +25,6 @@ int ClientBodySizeField::processValue(std::string value)
         std::cout << "Value:" << value << " is not a number" << std::endl;
         return 0;
     }
-    this->setValue(atoi(value.c_str()));
+    this->setValue(std::stoul(value.c_str()));
     return 1;
 }

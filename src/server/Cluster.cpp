@@ -37,6 +37,9 @@ bool Cluster::start()
     {
         int poll_count = poll(&pfds[0], pfds.size(), -1);
 
+        // std::cout << "Poll_count" << poll_count << std::endl;
+        // std::cout << "pfds size" << pfds.size() << std::endl;
+
         if (poll_count == -1)
         {
             perror("poll");
@@ -66,17 +69,31 @@ bool Cluster::start()
                 }
                 else
                 {
-                    if (requests[pfds[i].fd]->read())
+                    int res;
+                    if ((res = requests[pfds[i].fd]->read()) == 1)
                         pfds[i].events = POLLOUT;
+                    else if (res == 2)
+                    {
+                        close(pfds[i].fd);
+                        pfds.erase(pfds.begin() + i);
+                    }
                 }
             }
             else if (pfds[i].revents & POLLOUT)
             {
-                Response   *response = new Response(requests[pfds[i].fd]);
-                std::string message  = response->getResponse();
-                write(pfds[i].fd, message.c_str(), message.length());
-                close(pfds[i].fd);
-                pfds.erase(pfds.begin() + i);
+                if (requests[pfds[i].fd]->getState() == 0)
+                {
+                    close(pfds[i].fd);
+                    pfds.erase(pfds.begin() + i);
+                }
+                else
+                {
+                    Response   *response = new Response(requests[pfds[i].fd]);
+                    std::string message  = response->getResponse();
+                    write(pfds[i].fd, message.c_str(), message.length());
+                    close(pfds[i].fd);
+                    pfds.erase(pfds.begin() + i);
+                }
             }
         }
     }

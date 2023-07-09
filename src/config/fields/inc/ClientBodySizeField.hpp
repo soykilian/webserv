@@ -5,11 +5,11 @@
 #include <Utils.hpp>
 #include <cstdlib>
 
-class ClientBodySizeField : public BaseField<int>
+class ClientBodySizeField : public BaseField<size_t>
 {
   public:
     ClientBodySizeField();
-    ClientBodySizeField(int val);
+    ClientBodySizeField(size_t val);
     virtual ~ClientBodySizeField();
     ClientBodySizeField(ClientBodySizeField const &other);
     ClientBodySizeField &operator=(ClientBodySizeField const &other);

@@ -60,10 +60,10 @@ std::string Response::getErrorPage(std::string code)
     {
         file.open(this->server.getErrorPage());
         if (!file.is_open())
-            file.open("./http/" + std::string(code)+ ".html");
+            file.open("./http/" + std::string(code) + ".html");
     }
     else
-        file.open("./http/" + std::string(code)+ ".html");
+        file.open("./http/" + std::string(code) + ".html");
 
     if (!file.is_open())
     {
@@ -333,21 +333,52 @@ std::string Response::getResponse()
     std::string body;
     std::string line;
     short       flag = 0;
-    if (this->request->getVersion().compare("HTTP/1.1") != 0 
-    && this->request->getVersion().compare("HTTP/1.0") != 0)
+
+#ifdef DEBUG
+    std::cout << "REQUEST: " << *(this->request) << std::endl;
+#endif // DEBUG
+
+    // 01: Check the HTTP verion
+    if (this->request->getVersion().compare("HTTP/1.1") != 0 &&
+        this->request->getVersion().compare("HTTP/1.0") != 0)
     {
         std::cout << "Invalid HTTP version" << std::endl;
         return getErrorPage("505");
     }
+
+    // 02: Set the current server and location that will proces this req
     this->serversByHost =
         this->server.getServerByHost(this->request->getHost());
     setLocationAndServer(this->request->getRoute());
-    if (this->currentLocation != NULL && !this->currentLocation->getRedirection()->getValue().empty())
+
+    // 03: Check if the body size is allowed
+    if (this->currentLocation)
+    {
+        if (this->currentLocation->isClientBodySizeSet() &&
+            this->currentLocation->getClientBodySize() <
+                this->request->getBody().size())
+            return getErrorPage("413");
+    }
+    else if (this->currentServer->isClientBodySizeSet() &&
+             this->request->getBody().size() >
+                 this->currentServer->getClientBodySize())
+        return getErrorPage("413");
+
+    // 04: Check if the method is allowed
+    if (!this->currentServer->isAllowedMethod(request->getMethod()))
+        return getErrorPage("405");
+    if (this->currentLocation != NULL)
+        if (!this->currentLocation->isAllowedMethod(request->getMethod()))
+            return getErrorPage("405");
+
+    // 05: Check if redirection is set for this location
+    if (this->currentLocation != NULL &&
+        !this->currentLocation->getRedirection()->getValue().empty())
     {
         RedirectionField *redirection = this->currentLocation->getRedirection();
-        std::string code = redirection->getCode();
-        std::string uri = redirection->getUri();
-        std::string red_message = redirection->getRedirectionMessage();
+        std::string       code        = redirection->getCode();
+        std::string       uri         = redirection->getUri();
+        std::string       red_message = redirection->getRedirectionMessage();
         message = "HTTP/1.1 " + code + " " + red_message + "\n";
         message += "Location: " + uri + "\r\n";
         message += "Date: ";
@@ -355,23 +386,17 @@ std::string Response::getResponse()
         message += "\n\n";
         return message;
     }
-    // Check if the method is allowed
-    if (!this->currentServer->isAllowedMethod(request->getMethod()))
-        return getErrorPage("405");
-    if (this->currentLocation != NULL)
-        if (!this->currentLocation->isAllowedMethod(request->getMethod()))
-            return getErrorPage("405");
 
-    // TODO: server by host
+    // 06: Process CGI if set
     if (phpIndex != -1)
         if ((int(this->request->getRoute().length()) > phpIndex + 4 &&
              this->request->getRoute().at(phpIndex + 4) == 47) ||
             (int(this->request->getRoute().length()) == phpIndex + 4))
             return processCgi();
-    // TODO: server by host
+
+    // 07: Chose what verb to use
     if (this->request->getMethod().compare("POST") == 0)
         return fileEdition(1);
-    // TODO: server by host
     if (this->request->getMethod().compare("DELETE") == 0)
         return fileEdition(0);
     if (this->request->getMethod().compare("GET") != 0)

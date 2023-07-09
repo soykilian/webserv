@@ -24,6 +24,8 @@ Request &Request::operator=(Request const &rhs)
     return *this;
 }
 
+int Request::getState() const { return this->state; }
+
 std::string Request::getHeader(std::string key) const
 {
     std::map<std::string, std::string>::const_iterator it;
@@ -59,7 +61,7 @@ void Request::limitBody()
     }
 }
 
-bool Request::read()
+int Request::read()
 {
     char        buffer[BUFFER_SIZE + 1];
     char        c;
@@ -70,8 +72,10 @@ bool Request::read()
 
     rc = recv(this->fd, buffer, BUFFER_SIZE, 0);
     i  = 0;
-    if (rc <= 0)
-        return true;
+    if (rc == -1)
+        return 2;
+    if (rc == 0)
+        return 1;
     buffer[rc] = 0;
     this->bufferLeft += buffer;
     while ((c = this->bufferLeft[i]) != 0)
@@ -113,6 +117,16 @@ bool Request::read()
     else
         this->bufferLeft = this->bufferLeft.substr(j);
     if (rc < BUFFER_SIZE)
-        return true;
-    return false;
+        return 1;
+    return 0;
+}
+
+std::ostream &operator<<(std::ostream &out, Request const &req)
+{
+    out << "Request: " << std::endl;
+    out << "\t Version: " << req.getVersion() << std::endl;
+    out << "\t Method: " << req.getMethod() << std::endl;
+    out << "\t Route: " << req.getRoute() << std::endl;
+
+    return out;
 }

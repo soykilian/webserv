@@ -1,4 +1,4 @@
-#include "inc/IndexField.hpp"
+#include "AutoindexField.hpp"
 #include <Fields.hpp>
 #include <unistd.h>
 
@@ -12,6 +12,7 @@ Location::Location() : BaseField<std::string>()
     this->fields["error_page"]       = new ErrorPageField();
     this->fields["post_folder"]      = new LoadFolderField();
     this->fields["redirection"]      = new RedirectionField();
+    this->fields["autoindex"]        = new AutoindexField();
 }
 
 Location::~Location() {}
@@ -52,17 +53,30 @@ std::string Location::getIndex() const
     return ((RootField *)this->fields.at("index"))->getValue();
 }
 
-int Location::getClientBodySize() const
+size_t Location::getClientBodySize() const
 {
     return (
         dynamic_cast<ClientBodySizeField *>(this->fields.at("client_body_size"))
             ->getValue());
 }
 
+bool Location::isClientBodySizeSet() const
+{
+    return (
+        dynamic_cast<ClientBodySizeField *>(this->fields.at("client_body_size"))
+            ->isSet());
+}
+
 std::string Location::getErrorPage() const
 {
     return (dynamic_cast<ErrorPageField *>(this->fields.at("error_page"))
                 ->getValue());
+}
+
+bool Location::isAutoindexOn() const
+{
+    return (dynamic_cast<AutoindexField *>(this->fields.at("autoindex"))
+                ->validate());
 }
 
 bool Location::isAllowedMethod(std::string method) const
@@ -77,7 +91,7 @@ std::string Location::getFileEnd() const
     return (dynamic_cast<LoadFolderField *>(this->fields.at("post_folder"))
                 ->getValue());
 }
-RedirectionField* Location::getRedirection() const
+RedirectionField *Location::getRedirection() const
 {
     return (dynamic_cast<RedirectionField *>(this->fields.at("redirection")));
 }

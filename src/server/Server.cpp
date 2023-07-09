@@ -95,11 +95,18 @@ std::string Server::getErrorPage() const
                 ->getValue());
 }
 
-int Server::getClientBodySize() const
+size_t Server::getClientBodySize() const
 {
     return (
         dynamic_cast<ClientBodySizeField *>(this->fields.at("client_body_size"))
             ->getValue());
+}
+
+bool Server::isClientBodySizeSet() const
+{
+    return (
+        dynamic_cast<ClientBodySizeField *>(this->fields.at("client_body_size"))
+            ->isSet());
 }
 
 bool Server::isAllowedMethod(std::string method) const

@@ -2,11 +2,11 @@
 #define LOCATION_HPP
 
 #include <Base.hpp>
+#include <RedirectionField.hpp>
 #include <iostream>
 #include <map>
 #include <string>
 #include <vector>
-#include <RedirectionField.hpp>
 
 class Location : public BaseField<std::string>
 {
@@ -17,14 +17,16 @@ class Location : public BaseField<std::string>
     Location                     &operator=(const Location &);
     std::map<std::string, Base *> fields;
     int                           processValue(std::string value);
-    int                           getClientBodySize() const;
-    std::string                   getPath() const;
+    size_t                        getClientBodySize() const;
+    bool                          isAutoindexOn() const;
+    const std::string             getPath() const;
     std::string                   getRoot() const;
     std::string                   getIndex() const;
     std::string                   getErrorPage() const;
     std::string                   getFileEnd() const;
-    RedirectionField*                   getRedirection() const;
+    RedirectionField             *getRedirection() const;
     bool                          isAllowedMethod(std::string method) const;
+    bool                          isClientBodySizeSet() const;
 };
 
 std::ostream &operator<<(std::ostream &out, Location const &location);

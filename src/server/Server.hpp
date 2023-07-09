@@ -29,7 +29,7 @@ class Server
 
     // Getters for all the properties in the map
     int         getPort() const;
-    int         getClientBodySize() const;
+    size_t      getClientBodySize() const;
     std::string getHost() const;
     std::string getRoot() const;
     std::string getIndex() const;
@@ -39,6 +39,7 @@ class Server
 
     bool isAllowedMethod(std::string method) const;
     bool isAllowedMethodByPath(Request *req, Response *res) const;
+    bool isClientBodySizeSet() const;
 
     int  server_listen();
     void server_polling();
