@@ -270,6 +270,12 @@ void Config::loadConfig()
             std::cout << *this->currentServer << std::endl;
         }
     }
+    if (state == UNKNOWN && this->servers.size() == 0)
+    {
+        std::cerr << "Error: Config file must start with a server block"
+                  << std::endl;
+        exit(1);
+    }
 }
 
 Config::Config()

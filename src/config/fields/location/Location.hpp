@@ -28,6 +28,7 @@ class Location : public BaseField<std::string>
     RedirectionField             *getRedirection() const;
     bool                          isAllowedMethod(std::string method) const;
     bool                          isClientBodySizeSet() const;
+    bool                          isRootSet() const;
 };
 
 std::ostream &operator<<(std::ostream &out, Location const &location);

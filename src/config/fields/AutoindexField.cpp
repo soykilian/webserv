@@ -8,6 +8,7 @@ AutoindexField::AutoindexField(std::string val) : BaseField<std::string>(val)
 AutoindexField::AutoindexField() : BaseField<std::string>()
 {
     this->setValue("off");
+    this->setIsSet(false);
 }
 
 AutoindexField::~AutoindexField() {}
@@ -32,7 +33,6 @@ bool AutoindexField::validate()
 
 int AutoindexField::processValue(std::string value)
 {
-    std::cout << "AutoindexField::processValue: -" << value << "-" << std::endl;
     if (value == "on" || value == "off")
     {
         this->setValue(value);

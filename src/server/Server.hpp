@@ -41,6 +41,7 @@ class Server
     bool isAllowedMethodByPath(Request *req, Response *res) const;
     bool isAutoindexOn() const;
     bool isClientBodySizeSet() const;
+    bool isRootSet() const;
 
     int  server_listen();
     void server_polling();

@@ -62,10 +62,10 @@ std::string Response::getErrorPage(std::string code)
     {
         file.open(this->server.getErrorPage());
         if (!file.is_open())
-            file.open("./http/" + std::string(code) + ".html");
+            file.open("./default_errors/" + std::string(code) + ".html");
     }
     else
-        file.open("./http/" + std::string(code) + ".html");
+        file.open("./default_errors/" + std::string(code) + ".html");
     errorMessages["400"] = "Bad Request";
     errorMessages["403"] = "Forbidden";
     errorMessages["404"] = "Not Found";
@@ -116,18 +116,20 @@ std::string Response::fileEdition(int flag)
     std::string::size_type idx;
 
     if (!this->currentLocation->getFileEnd().empty())
-        folder = ft::concatPath(this->currentLocation->getRoot(),
+        folder = ft::concatPath(this->currentLocation->isRootSet()
+                                    ? this->currentLocation->getRoot()
+                                    : this->currentServer->getRoot(),
                                 this->currentLocation->getFileEnd());
     else if (this->currentServer->getFileEnd().empty())
         return getErrorPage("500");
-    else if (folder.empty())
+    else
         folder = ft::concatPath(this->currentServer->getRoot(),
                                 this->currentServer->getFileEnd());
 
-    idx   = this->request->getRoute().find_last_of('/');
+    idx = this->request->getRoute().find_last_of('/');
+    if (this->request->getRoute().substr(idx + 1).empty())
+        return getErrorPage("400");
     route = ft::concatPath(folder, this->request->getRoute().substr(idx + 1));
-
-    std::cout << "Route: " << route << std::endl;
 
     /*POST*/
     if (flag == 1)
@@ -139,7 +141,6 @@ std::string Response::fileEdition(int flag)
             std::cout << "Error opening file" << std::endl;
             return getErrorPage("404");
         }
-        std::cout << "File successfully opened" << std::endl;
         file << this->request->getBody();
         file.close();
     }
@@ -215,7 +216,6 @@ std::string Response::getPath()
         std::cout << "Error getting environment variables" << std::endl;
         return "";
     }
-    std::cout << "Route: " << route << std::endl;
     std::string env(tmp);
     end = env.find(":", start);
     while (end != std::string::npos)
@@ -241,6 +241,10 @@ std::string Response::get_cgi()
     int         fd[2];
     pipe(fd);
     int pid = fork();
+
+    if (pid == -1)
+        return getErrorPage("500");
+
     if (pid == 0)
     {
         close(fd[READ_END]);
@@ -268,7 +272,6 @@ std::string Response::get_cgi()
             std::cout << "Error executing CGI" << std::endl;
             return getErrorPage("500");
         }
-        std::cout << "Captured output: -" << capturedOutput << "-" << std::endl;
         std::string message = "HTTP/1.1 200 OK\r\n";
         message += "Content-Type: text/html\n";
         message += "Content-Length: ";
@@ -278,7 +281,6 @@ std::string Response::get_cgi()
         message += addDate();
         message += "\n\n";
         message += capturedOutput;
-        std::cout << "Message: " << message << std::endl;
         return message;
     }
     return getErrorPage("404");
@@ -286,18 +288,22 @@ std::string Response::get_cgi()
 
 std::string Response::processCgi()
 {
-    std::string route = ft::concatPath(this->currentLocation != NULL
-                                           ? this->currentLocation->getRoot()
-                                           : this->currentServer->getRoot(),
-                                       this->request->getRoute());
-    int index       = route.find(".php");
-    int query_index = route.find("?");
-    std::cout << "Route: " << route << std::endl;
+    std::string route;
+    std::string root;
+    int         index;
+    int         query_index;
 
-    std::cout << "Route: " << route << std::endl;
-    std::cout << "Location root: " << this->currentLocation->getRoot()
-              << std::endl;
-    std::cout << "Server root: " << this->currentServer->getRoot() << std::endl;
+    if (this->currentLocation != NULL && this->currentLocation->isRootSet())
+        route = ft::concatPath(
+            this->currentLocation->getRoot(),
+            ft::removeRootFromPath(this->currentLocation->getValue(),
+                                   this->request->getRoute()));
+    else
+        route = ft::concatPath(this->currentServer->getRoot(),
+                               this->request->getRoute());
+
+    index       = route.find(".php");
+    query_index = route.find("?");
 
     if (access(route.c_str(), F_OK) == -1)
     {
@@ -313,20 +319,20 @@ std::string Response::processCgi()
     else
         this->cgi_path = route.substr(index + 4);
     this->php_path = route.substr(0, index + 4);
-    std::cout << "PHP file path: " << this->php_path << std::endl;
     return get_cgi();
 }
 
 void Response::setLocationAndServer(std::string path)
 {
-    Server const               *curr             = &this->server;
     std::vector<Server const *> servers          = this->getServersByHost();
     Location const             *longestMatchLoc  = NULL;
     Server const               *longestMatchServ = &this->server;
     size_t                      longestMatch     = 0;
+    Server const               *curr             = &this->server;
 
     if (servers.size() > 0)
     {
+        longestMatchServ = servers[0];
         for (size_t i = 0; i < servers.size(); i++)
         {
             for (size_t j = 0; j < servers[i]->locations.size(); j++)
@@ -366,6 +372,7 @@ void Response::setLocationAndServer(std::string path)
     this->currentServer   = longestMatchServ;
     this->currentLocation = longestMatchLoc;
 }
+
 std::string Response::checkErrors()
 {
     // 01: Check the HTTP verion
@@ -400,6 +407,7 @@ std::string Response::checkErrors()
             return getErrorPage("405");
     return "";
 }
+
 std::string Response::getResponse()
 {
     std::string message  = "HTTP/1.1 200 OK\r\n";
@@ -408,12 +416,11 @@ std::string Response::getResponse()
     std::string line;
     short       flag = 0;
 
-#ifdef DEBUG
-    std::cout << "REQUEST: " << *(this->request) << std::endl;
-#endif // DEBUG
+    // Check if there are any errors
     std::string messageError = checkErrors();
     if (messageError.length() > 0)
         return messageError;
+
     // 05: Check if redirection is set for this location
     if (this->currentLocation != NULL &&
         !this->currentLocation->getRedirection()->getValue().empty())
@@ -451,14 +458,14 @@ std::string Response::getResponse()
             if (!this->currentLocation->isAutoindexOn())
                 return getErrorPage("403");
         }
-        else if (this->currentServer->isAutoindexOn())
+        else if (!this->currentServer->isAutoindexOn())
             return getErrorPage("403");
         message += "Content-Type: " + ft::getMimeType("index.html") +
                    "\nContent-Length: " + std::to_string(fileName.length()) +
                    "\nDate: " + addDate() + "\n\n" + fileName;
         return message;
     }
-    std::cout << "File name: " << fileName << std::endl;
+
     if (fileName.empty())
         return getErrorPage("404");
 

@@ -24,12 +24,12 @@ int ErrorPageField::processValue(std::string value)
 {
     std::string fullpath = ft::concatPath(this->getRoot(), value);
 
-    if (access(fullpath.c_str(), F_OK) == -1)
-    {
-        std::cout << "Path :" << value << "does not exist" << std::endl;
-        return 0;
-    }
-    std::cout << "Path exists" << std::endl;
+    // if (access(fullpath.c_str(), F_OK) == -1)
+    // {
+    //     std::cout << "Path :" << value << "does not exist" << std::endl;
+    //     return 0;
+    // }
+    // std::cout << "Path exists" << std::endl;
     this->setValue(value);
     return 1;
 }

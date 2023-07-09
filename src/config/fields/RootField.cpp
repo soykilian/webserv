@@ -20,12 +20,12 @@ RootField &RootField::operator=(const RootField &other)
 
 int RootField::processValue(std::string value)
 {
-    // check if the path is a valid path
-    if (access(value.c_str(), F_OK) == -1)
-    {
-        std::cout << "Path does not exist" << std::endl;
-        return 0;
-    }
+    // // check if the path is a valid path
+    // if (access(value.c_str(), F_OK) == -1)
+    // {
+    //     std::cout << "Path does not exist" << std::endl;
+    //     return 0;
+    // }
     this->setValue(value);
     this->setRoot(value);
     return 1;

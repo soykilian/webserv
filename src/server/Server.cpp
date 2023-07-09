@@ -125,6 +125,11 @@ bool Server::isAutoindexOn() const
                 ->validate());
 }
 
+bool Server::isRootSet() const
+{
+    return (dynamic_cast<RootField *>(this->fields.at("root"))->isSet());
+}
+
 std::vector<Location *> Server::findLocationsByPath(std::string path) const
 {
     std::vector<Location *> res = std::vector<Location *>();
@@ -245,7 +250,6 @@ std::string Server::getFileEnd() const
 std::string Server::directoryListing(std::string responseFile,
                                      std::string route) const
 {
-    std::cout << "Directory listing" << std::endl;
     std::string htmlFile;
     htmlFile += "<!DOCTYPE html>\n";
     htmlFile += "<head>\n";
@@ -287,7 +291,7 @@ std::string Server::getResponseFile(Request *req, Response *res,
     Server const   *server = res->getServer();
     std::string     route;
 
-    if (loc)
+    if (loc != NULL && loc->isRootSet())
     {
         responseFile = ft::concatPath(
             loc->getRoot(),
@@ -296,7 +300,6 @@ std::string Server::getResponseFile(Request *req, Response *res,
             responseFile,
             ft::removeRootFromPath(loc->getValue(), loc->getIndex()));
         route = ft::removeRootFromPath(loc->getValue(), req->getRoute());
-        std::cout << "route: " << responseFile << std::endl;
     }
     else
     {

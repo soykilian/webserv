@@ -12,8 +12,8 @@ Location::Location() : BaseField<std::string>()
     this->fields["error_page"]       = new ErrorPageField();
     this->fields["post_folder"]      = new LoadFolderField();
     this->fields["redirection"]      = new RedirectionField();
-    this->fields["autoindex"]		= new AutoindexField();
-	this->fields["cgi"]				= new CGIField();
+    this->fields["autoindex"]        = new AutoindexField();
+    this->fields["cgi"]              = new CGIField();
 }
 
 Location::~Location() {}
@@ -81,8 +81,7 @@ bool Location::isAutoindexOn() const
 }
 bool Location::isCGIOn() const
 {
-    return (dynamic_cast<CGIField *>(this->fields.at("cgi"))
-                ->validate());
+    return (dynamic_cast<CGIField *>(this->fields.at("cgi"))->validate());
 }
 
 bool Location::isAllowedMethod(std::string method) const
@@ -90,6 +89,11 @@ bool Location::isAllowedMethod(std::string method) const
     return (
         dynamic_cast<AllowedMethodsField *>(this->fields.at("allowed_methods"))
             ->validate(method));
+}
+
+bool Location::isRootSet() const
+{
+    return (dynamic_cast<RootField *>(this->fields.at("root"))->isSet());
 }
 
 std::string Location::getFileEnd() const
