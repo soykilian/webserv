@@ -114,6 +114,10 @@ std::ostream &operator<<(std::ostream &out, Location const &location)
     out << "\t\t\t Client body size: " << location.getClientBodySize()
         << std::endl;
     out << "\t\t\t Error page: " << location.getErrorPage() << std::endl;
+    out << "\t\t\t Post folder: " << location.getFileEnd() << std::endl;
+    out << "\t\t\t Redirection: " << location.getRedirection()->getValue()
+        << std::endl;
+    out << "\t\t\t CGI: " << location.isCGIOn() << std::endl;
     out << "\t\t\t Allowed methods: "
         << dynamic_cast<AllowedMethodsField *>(
                location.fields.at("allowed_methods"))

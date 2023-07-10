@@ -30,7 +30,6 @@ bool CGIField::validate()
 
 int CGIField::processValue(std::string value)
 {
-    std::cout << "CGIField::processValue: -" << value << "-" << std::endl;
     if (value == "on" || value == "off")
     {
         this->setValue(value);
