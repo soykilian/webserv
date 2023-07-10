@@ -8,14 +8,12 @@ CGIField::CGIField(std::string val) : BaseField<std::string>(val)
 CGIField::CGIField() : BaseField<std::string>()
 {
     this->setValue("off");
+    this->setIsSet(false);
 }
 
 CGIField::~CGIField() {}
 
-CGIField::CGIField(CGIField const &other)
-{
-    this->setValue(other.getValue());
-}
+CGIField::CGIField(CGIField const &other) { this->setValue(other.getValue()); }
 
 CGIField &CGIField::operator=(const CGIField &other)
 {

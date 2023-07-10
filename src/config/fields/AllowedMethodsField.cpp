@@ -11,6 +11,7 @@ AllowedMethodsField::AllowedMethodsField() : BaseField<std::string>()
     this->methods.push_back("GET");
     this->methods.push_back("POST");
     this->methods.push_back("DELETE");
+    this->setIsSet(false);
 }
 
 AllowedMethodsField::~AllowedMethodsField() {}

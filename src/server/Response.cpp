@@ -115,7 +115,8 @@ std::string Response::fileEdition(int flag)
     std::string            folder;
     std::string::size_type idx;
 
-    if (!this->currentLocation->getFileEnd().empty())
+    if (this->currentLocation != NULL &&
+        !this->currentLocation->getFileEnd().empty())
         folder = ft::concatPath(this->currentLocation->isRootSet()
                                     ? this->currentLocation->getRoot()
                                     : this->currentServer->getRoot(),
@@ -129,8 +130,12 @@ std::string Response::fileEdition(int flag)
     idx = this->request->getRoute().find_last_of('/');
     if (this->request->getRoute().substr(idx + 1).empty())
         return getErrorPage("400");
-    route = ft::concatPath(folder, this->request->getRoute().substr(idx + 1));
-
+    if (this->currentLocation != NULL)
+        route = ft::concatPath(
+            folder, ft::removeRootFromPath(this->currentLocation->getValue(),
+                                           this->request->getRoute()));
+    else
+        route = ft::concatPath(folder, this->request->getRoute());
     /*POST*/
     if (flag == 1)
     {
