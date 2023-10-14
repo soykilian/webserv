@@ -1,4 +1,4 @@
-# Webserv: Your Own HTTP Server
+# Webserv: Your HTTP Server
 
 ## Introduction
 
