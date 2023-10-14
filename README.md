@@ -1,5 +1,5 @@
 # webserv
-This is when you finally understand why a URL starts with HTTP
+This project aims to create a basic HTTP server following the HTTP/1.1 standard in C++98.
 
 
 ## Notes and links
