@@ -3,6 +3,26 @@
 ## Introduction
 
 "Webserv" is a project aimed at creating an HTTP server using C++98. The server is designed to manage HTTP, a pivotal protocol for data communication on the World Wide Web, and should be capable of handling various HTTP methods and status codes, interacting with web browsers, and managing client-server communication.
+
+
+## How to run
+---
+### Clone the repo
+```
+git clone https://github.com/soykilian/webserv.git webserv
+```
+
+### Compile and execute
+
+Run `make` to compile the project
+```
+cd ./webserv && make
+```
+Execute the binary passing the config file you wanna use as a parameter. If no `config_file` is passed the program will look for a default config file `./webserv.conf`
+```
+./webserv <configuration_file>
+```
+
 ## Theory and Guidelines
 
 ### Understanding HTTP Servers
